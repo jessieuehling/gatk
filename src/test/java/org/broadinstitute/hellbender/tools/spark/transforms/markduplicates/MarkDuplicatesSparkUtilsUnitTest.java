@@ -13,6 +13,7 @@ import org.broadinstitute.hellbender.utils.read.GATKRead;
 import org.broadinstitute.hellbender.utils.read.SAMRecordToGATKReadAdapter;
 import org.broadinstitute.hellbender.utils.read.markduplicates.MarkDuplicatesScoringStrategy;
 import org.broadinstitute.hellbender.utils.read.markduplicates.SerializableOpticalDuplicatesFinder;
+import org.broadinstitute.hellbender.utils.spark.SparkUtils;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import scala.Tuple2;
@@ -44,7 +45,7 @@ public class MarkDuplicatesSparkUtilsUnitTest extends GATKBaseTest {
     }
 
     private static <K, V> void check(Iterator<Tuple2<K, V>> it, List<Tuple2<K, Iterable<V>>> expected) {
-        Iterator<Tuple2<K, Iterable<V>>> spanning = MarkDuplicatesSparkUtils.spanningIterator(it);
+        Iterator<Tuple2<K, Iterable<V>>> spanning = SparkUtils.spanningIterator(it);
         ArrayList<Tuple2<K, Iterable<V>>> actual = Lists.newArrayList(spanning);
         Assert.assertEquals(actual, expected);
     }
