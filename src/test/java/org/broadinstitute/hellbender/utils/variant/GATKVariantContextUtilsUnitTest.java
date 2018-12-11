@@ -17,9 +17,7 @@ import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.*;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
-import java.nio.file.OpenOption;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import org.apache.commons.lang3.tuple.Pair;
 import org.broadinstitute.hellbender.GATKBaseTest;
 import org.broadinstitute.hellbender.engine.FeatureManager;
@@ -1915,7 +1913,7 @@ public final class GATKVariantContextUtilsUnitTest extends GATKBaseTest {
     @Test
     public void testCreateVcfWriterOnNio() throws IOException {
         try (FileSystem jimfs = Jimfs.newFileSystem(Configuration.unix())) {
-            final Path outputGZIP = jimfs.getPath("testOnTheFlyTabixCreation.vcf.gz");
+            final Path outputGZIP = jimfs.getPath("testCreateVcfWriterOnNio.vcf.gz");
             final Path tabixIndex = outputGZIP.resolveSibling(outputGZIP.getFileName().toString() + TabixUtils.STANDARD_INDEX_EXTENSION);
 
             final File inputGZIPFile = new File(
@@ -1943,7 +1941,12 @@ public final class GATKVariantContextUtilsUnitTest extends GATKBaseTest {
             Assert.assertTrue(Files.exists(tabixIndex));
             Assert.assertTrue(Files.size(tabixIndex) > 0);
 
-            // We can't verify the index via query because it doesn't currently take Path :(
+            // Read back, check we see all the variants.
+            long actualCount = 0;
+            for (VariantContext i : new VCFFileReader(outputGZIP)) {
+                actualCount++;
+            }
+            Assert.assertEquals(actualCount, recordCount);
         }
     }
 
