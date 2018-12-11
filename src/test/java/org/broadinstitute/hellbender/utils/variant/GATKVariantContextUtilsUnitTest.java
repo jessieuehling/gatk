@@ -1912,14 +1912,13 @@ public final class GATKVariantContextUtilsUnitTest extends GATKBaseTest {
 
     @Test
     public void testCreateVcfWriterOnNio() throws IOException {
+        final File inputGZIPFile = new File(
+            publicTestDir + "org/broadinstitute/hellbender/engine/8_mutect2_sorted.vcf.gz");
         try (FileSystem jimfs = Jimfs.newFileSystem(Configuration.unix())) {
             final Path outputGZIP = jimfs.getPath("testCreateVcfWriterOnNio.vcf.gz");
             final Path tabixIndex = outputGZIP.resolveSibling(outputGZIP.getFileName().toString() + TabixUtils.STANDARD_INDEX_EXTENSION);
-
-            final File inputGZIPFile = new File(
-                publicTestDir + "org/broadinstitute/hellbender/engine/8_mutect2_sorted.vcf.gz");
-
             long recordCount = 0;
+
             try (final VariantContextWriter vcfWriter = GATKVariantContextUtils.createVCFWriter(
                 outputGZIP,
                 null,
@@ -1941,12 +1940,16 @@ public final class GATKVariantContextUtilsUnitTest extends GATKBaseTest {
             Assert.assertTrue(Files.exists(tabixIndex));
             Assert.assertTrue(Files.size(tabixIndex) > 0);
 
-            // Read back, check we see all the variants.
-            long actualCount = 0;
-            for (VariantContext i : new VCFFileReader(outputGZIP)) {
-                actualCount++;
+            // make sure we got an output and queryable index
+            long roundTripRecordCount = 0;
+            try (final VCFFileReader outputFileReader = new VCFFileReader(outputGZIP, true)) {
+                final Iterator<VariantContext> it = outputFileReader.query(new SimpleInterval("chr6", 1, 999999999));
+                while (it.hasNext()) {
+                    it.next();
+                    roundTripRecordCount++;
+                }
             }
-            Assert.assertEquals(actualCount, recordCount);
+            Assert.assertEquals(roundTripRecordCount, recordCount);
         }
     }
 
