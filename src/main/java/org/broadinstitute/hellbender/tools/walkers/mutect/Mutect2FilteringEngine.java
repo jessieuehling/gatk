@@ -35,7 +35,7 @@ public class Mutect2FilteringEngine {
         this.normalSample = normalSample;
         somaticPriorProb = Math.pow(10, MTFAC.log10PriorProbOfSomaticEvent);
         final List<MinorAlleleFractionRecord> tumorMinorAlleleFractionRecords = MTFAC.tumorSegmentationTable == null ?
-                Collections.emptyList() : MinorAlleleFractionRecord.readFromFile(MTFAC.tumorSegmentationTable);
+                Collections.emptyList() : MinorAlleleFractionRecord.readFromFile(MTFAC.tumorSegmentationTable).getRight();
         tumorSegments = OverlapDetector.create(tumorMinorAlleleFractionRecords);
     }
 
