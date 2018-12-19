@@ -94,7 +94,6 @@ public class Mutect2IntegrationTest extends CommandLineProgramTest {
 
         final List<String> args = Arrays.asList(
                 "-I", tumorBam.getAbsolutePath(),
-                "-" + M2ArgumentCollection.TUMOR_SAMPLE_SHORT_NAME, tumor,
                 "-R", b37_reference_20_21,
                 "-L", "20",
                 "--" + M2ArgumentCollection.GERMLINE_RESOURCE_LONG_NAME, GNOMAD.getAbsolutePath(),
@@ -148,13 +147,12 @@ public class Mutect2IntegrationTest extends CommandLineProgramTest {
     // make a pon with a tumor and then use this pon to call somatic variants on the same tumor
     // if the pon is doing its job all calls should be filtered by this pon
     @Test(dataProvider = "dreamSyntheticDataSample1")
-    public void testPon(final File tumorBam, final String tumorSample, final File normalBam, final String normalSample) throws Exception {
+    public void testPon(final File tumorBam, final File normalBam, final String normalSample) throws Exception {
         Utils.resetRandomGenerator();
 
         final File ponVcf = createTempFile("pon", ".vcf");
         final String[] createPonArgs = {
                 "-I", tumorBam.getAbsolutePath(),
-                "-" + M2ArgumentCollection.TUMOR_SAMPLE_SHORT_NAME, tumorSample,
                 "-I", normalBam.getAbsolutePath(),
                 "-" + M2ArgumentCollection.NORMAL_SAMPLE_SHORT_NAME, normalSample,
                 "-R", b37_reference_20_21,
@@ -168,7 +166,6 @@ public class Mutect2IntegrationTest extends CommandLineProgramTest {
         final File filteredVcf = createTempFile("filtered", ".vcf");
         final String[] callWithPonArgs = {
                 "-I", tumorBam.getAbsolutePath(),
-                "-" + M2ArgumentCollection.TUMOR_SAMPLE_SHORT_NAME, tumorSample,
                 "-I", normalBam.getAbsolutePath(),
                 "-" + M2ArgumentCollection.NORMAL_SAMPLE_SHORT_NAME, normalSample,
                 "-" + M2ArgumentCollection.PANEL_OF_NORMALS_SHORT_NAME, ponVcf.getAbsolutePath(),
@@ -203,7 +200,6 @@ public class Mutect2IntegrationTest extends CommandLineProgramTest {
 
         final String[] args = {
                 "-I", tumorBam.getAbsolutePath(),
-                "-" + M2ArgumentCollection.TUMOR_SAMPLE_SHORT_NAME, tumorName,
                 "-I", normalBam.getAbsolutePath(),
                 "-" + M2ArgumentCollection.NORMAL_SAMPLE_SHORT_NAME, normalName,
                 "-R", b37_reference_20_21,
@@ -225,7 +221,6 @@ public class Mutect2IntegrationTest extends CommandLineProgramTest {
         final File filteredVcf = createTempFile("filtered", ".vcf");
 
         final List<String> args = Arrays.asList("-I", NA12878_20_21_WGS_bam,
-                "-" + M2ArgumentCollection.TUMOR_SAMPLE_SHORT_NAME, "NA12878",
                 "-R", b37_reference_20_21,
                 "-L", "20:10000000-10010000",
                 "-O", unfilteredVcf.getAbsolutePath(),
@@ -257,7 +252,6 @@ public class Mutect2IntegrationTest extends CommandLineProgramTest {
             final File outputVcf = createTempFile("unfiltered", ".vcf");
 
             final List<String> args = Arrays.asList("-I", bam.getAbsolutePath(),
-                    "-" + M2ArgumentCollection.TUMOR_SAMPLE_SHORT_NAME, "NA12878",
                     "-R", b37_reference_20_21,
                     "-L", "20:10019000-10022000",
                     "-O", outputVcf.getAbsolutePath(),
@@ -319,7 +313,6 @@ public class Mutect2IntegrationTest extends CommandLineProgramTest {
 
         final File givenAllelesVcf = new File(toolsTestDir, "mutect/gga_mode.vcf");
         final List<String> args = Arrays.asList("-I", NA12878_20_21_WGS_bam,
-                "-" + M2ArgumentCollection.TUMOR_SAMPLE_SHORT_NAME, "NA12878",
                 "-R", b37_reference_20_21,
                 "-L", "20:9998500-10010000",
                 "-O", unfilteredVcf.getAbsolutePath(),
@@ -345,7 +338,6 @@ public class Mutect2IntegrationTest extends CommandLineProgramTest {
         final File unfilteredVcf = createTempFile("unfiltered", ".vcf");
         final File givenAllelesVcf = new File(toolsTestDir, "mutect/gga_mode_2.vcf");
         final List<String> args = Arrays.asList("-I", bam.getAbsolutePath(),
-                "-" + M2ArgumentCollection.TUMOR_SAMPLE_SHORT_NAME, sample,
                 "-R", b37_reference_20_21,
                 "-L", "20:1119000-1120000",
                 "-O", unfilteredVcf.getAbsolutePath(),
@@ -361,7 +353,6 @@ public class Mutect2IntegrationTest extends CommandLineProgramTest {
         final String sample = "synthetic.challenge.set4.tumour";
         final File unfilteredVcf = createTempFile("unfiltered", ".vcf");
         final List<String> args = Arrays.asList("-I", bam.getAbsolutePath(),
-                "-" + M2ArgumentCollection.TUMOR_SAMPLE_SHORT_NAME, sample,
                 "-R", b37_reference_20_21,
                 "--" + M2ArgumentCollection.GERMLINE_RESOURCE_LONG_NAME, GNOMAD_WITHOUT_AF_SNIPPET.getAbsolutePath(),
                 "-L", "20:10086110",
@@ -380,7 +371,6 @@ public class Mutect2IntegrationTest extends CommandLineProgramTest {
 
         final String[] args = {
                 "-I", NA12878_20_21_WGS_bam,
-                "-" + M2ArgumentCollection.TUMOR_SAMPLE_SHORT_NAME, "NA12878",
                 "-R", b37_reference_20_21,
                 "-L", "20:10000000-20010000",
                 "--" + M2ArgumentCollection.GERMLINE_RESOURCE_LONG_NAME, GNOMAD.getAbsolutePath(),
@@ -443,7 +433,6 @@ public class Mutect2IntegrationTest extends CommandLineProgramTest {
         final File outputVcf = createTempFile("output", ".vcf");
         final String[] args = {
                 "-I", CONSUMES_ZERO_REFERENCE_BASES,
-                "-" + M2ArgumentCollection.TUMOR_SAMPLE_SHORT_NAME, "SM-612V3",
                 "-R", b37_reference_20_21,
                 "-O", outputVcf.getAbsolutePath()
         };
@@ -458,7 +447,6 @@ public class Mutect2IntegrationTest extends CommandLineProgramTest {
         final File outputVcf = createTempFile("output", ".vcf");
         final String[] args = {
                 "-I", bamWithUnpairedReads,
-                "-" + M2ArgumentCollection.TUMOR_SAMPLE_SHORT_NAME, "SM-612V3",
                 "-R", b37_reference_20_21,
                 "-O", outputVcf.getAbsolutePath()
         };
@@ -490,14 +478,12 @@ public class Mutect2IntegrationTest extends CommandLineProgramTest {
         Utils.resetRandomGenerator();
 
         final File tumor = new File(DREAM_BAMS_DIR, "tumor_1.bam");
-        final String tumorSample = "tumor sample";
 
         final File outputAtLowThreshold = createTempFile("output", ".vcf");
         final File outputAtHighThreshold = createTempFile("output", ".vcf");
 
         final String[] lowThresholdArgs = {
                 "-I", tumor.getAbsolutePath(),
-                "-" + M2ArgumentCollection.TUMOR_SAMPLE_SHORT_NAME, tumorSample,
                 "-R", b37_reference_20_21,
                 "-L", "20:10000000-13000000",
                 "-O", outputAtLowThreshold.getAbsolutePath(),
@@ -508,7 +494,6 @@ public class Mutect2IntegrationTest extends CommandLineProgramTest {
 
         final String[] highThresholdArgs = {
                 "-I", tumor.getAbsolutePath(),
-                "-" + M2ArgumentCollection.TUMOR_SAMPLE_SHORT_NAME, tumorSample,
                 "-R", b37_reference_20_21,
                 "-L", "20:10000000-13000000",
                 "-O", outputAtHighThreshold.getAbsolutePath(),
@@ -594,7 +579,6 @@ public class Mutect2IntegrationTest extends CommandLineProgramTest {
         final File unfilteredVcf = createTempFile("unfiltered", ".vcf");
 
         final List<String> args = Arrays.asList("-I", DEEP_MITO_BAM.getAbsolutePath(),
-                "-" + M2ArgumentCollection.TUMOR_SAMPLE_SHORT_NAME, DEEP_MITO_SAMPLE_NAME,
                 "-R", MITO_REF.getAbsolutePath(),
                 "-L", "chrM:1-1018",
                 "-ip", "300",
@@ -659,7 +643,6 @@ public class Mutect2IntegrationTest extends CommandLineProgramTest {
         final File unfilteredVcf = File.createTempFile("unfiltered", ".vcf");
         final List<String> args = Arrays.asList(
                 "-I", samFile.getAbsolutePath(),
-                "-" + M2ArgumentCollection.TUMOR_SAMPLE_SHORT_NAME, M2TestingUtils.DEFAULT_SAMPLE_NAME,
                 "-R", hg19_chr1_1M_Reference,
                 "-O", unfilteredVcf.getAbsolutePath());
         runCommandLine(args);
@@ -793,7 +776,6 @@ public class Mutect2IntegrationTest extends CommandLineProgramTest {
 
         final List<String> args = Arrays.asList(
                 "-I", samWithNsandStrandBias.getAbsolutePath(),
-                "-" + M2ArgumentCollection.TUMOR_SAMPLE_SHORT_NAME, M2TestingUtils.DEFAULT_SAMPLE_NAME,
                 "-R", hg19_chr1_1M_Reference,
                 "-A", "StrandBiasBySample",
                 "-A", "CountNs",
@@ -871,11 +853,11 @@ public class Mutect2IntegrationTest extends CommandLineProgramTest {
         };
     }
 
-    // tumor bam, tumor sample name, normal bam, normal sample name, truth vcf, required sensitivity
+    // tumor bam, normal bam, normal sample name, truth vcf, required sensitivity
     @DataProvider(name = "dreamSyntheticDataSample1")
     public Object[][] dreamSyntheticDataSample1() {
         return new Object[][]{
-                {new File(DREAM_BAMS_DIR, "tumor_1.bam"), "tumor sample", new File(DREAM_BAMS_DIR, "normal_1.bam"), "synthetic.challenge.set1.normal"}
+                {new File(DREAM_BAMS_DIR, "tumor_1.bam"), new File(DREAM_BAMS_DIR, "normal_1.bam"), "synthetic.challenge.set1.normal"}
         };
     }
 

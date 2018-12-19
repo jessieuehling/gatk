@@ -56,6 +56,8 @@ public class M2ArgumentCollection extends AssemblyBasedCallerArgumentCollection 
     //TODO: so for now we require the user to specify bams *both* as inputs, with -I tumor.bam -I normal.bam
     //TODO: *and* as sample names e.g. -tumor <tumor sample> -normal <normal sample>
 
+    // As of GATK 4.1, any sample not specified as the normal is considered a tumor sample
+    @Deprecated
     @Argument(fullName = TUMOR_SAMPLE_LONG_NAME, shortName = TUMOR_SAMPLE_SHORT_NAME, doc = "BAM sample name of tumor.  May be URL-encoded as output by GetSampleName with -encode argument.", optional = true)
     protected String tumorSample = null;
 

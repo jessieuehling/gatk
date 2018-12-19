@@ -34,7 +34,6 @@ import java.util.stream.IntStream;
 public class SomaticGenotypingEngine extends AssemblyBasedCallerGenotypingEngine {
 
     private final M2ArgumentCollection MTAC;
-    public final String tumorSample;
     private final String normalSample;
     final boolean hasNormal;
     public static final String DISCARDED_MATE_READ_TAG = "DM";
@@ -55,11 +54,9 @@ public class SomaticGenotypingEngine extends AssemblyBasedCallerGenotypingEngine
 
     public SomaticGenotypingEngine(final SampleList samples,
                                    final M2ArgumentCollection MTAC,
-                                   final String tumorSample,
                                    final String normalSample) {
         super(MTAC, samples, DUMMY_AF_CALCULATOR_PROVIDER, !MTAC.doNotRunPhysicalPhasing);
         this.MTAC = MTAC;
-        this.tumorSample = tumorSample;
         this.normalSample = normalSample;
         hasNormal = normalSample != null;
     }
@@ -87,7 +84,6 @@ public class SomaticGenotypingEngine extends AssemblyBasedCallerGenotypingEngine
         Utils.nonNull(log10ReadLikelihoods);
         Utils.validateArg(log10ReadLikelihoods.numberOfSamples() > 0, "likelihoods have no samples");
         Utils.nonNull(activeRegionWindow);
-        Utils.validateArg(log10ReadLikelihoods.samples().contains(tumorSample), "readLikelihoods does not contain the tumor sample ");
 
         final List<Haplotype> haplotypes = log10ReadLikelihoods.alleles();
 

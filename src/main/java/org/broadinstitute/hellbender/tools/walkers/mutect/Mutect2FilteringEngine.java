@@ -349,6 +349,7 @@ public class Mutect2FilteringEngine {
         }
     }
 
+    //TODO: add up all tumor counts for each strand
     private void applyStrictStrandFilter(final M2FiltersArgumentCollection MTFAC, final VariantContext vc, final FilterResult filterResult) {
 
         if (! MTFAC.strictStrandBias) {
@@ -370,6 +371,7 @@ public class Mutect2FilteringEngine {
         }
     }
 
+    // TODO: sum over all tumor samples
     private void applyNRatioFilter(final M2FiltersArgumentCollection MTFAC, final VariantContext vc, final FilterResult filterResult) {
         final Genotype tumorGenotype = vc.getGenotype(tumorSample);
         final double[] alleleFractions = GATKProtectedVariantContextUtils.getAttributeAsDoubleArray(tumorGenotype, VCFConstants.ALLELE_FREQUENCY_KEY,
@@ -389,7 +391,8 @@ public class Mutect2FilteringEngine {
             filterResult.addFilter(GATKVCFConstants.N_RATIO_FILTER_NAME);
         }
     }
-  
+
+    //TODO: make this an INFO field annotation
     private void applyChimericOriginalAlignmentFilter(final M2FiltersArgumentCollection MTFAC, final VariantContext vc, final FilterResult filterResult) {
 
         final Genotype tumorGenotype = vc.getGenotype(tumorSample);
