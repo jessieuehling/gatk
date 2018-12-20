@@ -29,10 +29,9 @@ public class Mutect2FilteringEngine {
     final OverlapDetector<MinorAlleleFractionRecord> tumorSegments;
     public static final String FILTERING_STATUS_VCF_KEY = "filtering_status";
 
-    public Mutect2FilteringEngine(final M2FiltersArgumentCollection MTFAC, final String tumorSample, final Optional<String> normalSample) {
+    public Mutect2FilteringEngine(final M2FiltersArgumentCollection MTFAC, final Optional<String> normalSample) {
         this.MTFAC = MTFAC;
         contamination = MTFAC.contaminationTable == null ? MTFAC.contaminationEstimate : ContaminationRecord.readFromFile(MTFAC.contaminationTable).get(0).getContamination();
-        this.tumorSample = tumorSample;
         this.normalSample = normalSample;
         somaticPriorProb = Math.pow(10, MTFAC.log10PriorProbOfSomaticEvent);
         final List<MinorAlleleFractionRecord> tumorMinorAlleleFractionRecords = MTFAC.tumorSegmentationTable == null ?
@@ -242,8 +241,7 @@ public class Mutect2FilteringEngine {
         final double[] tumorLods = GATKProtectedVariantContextUtils.getAttributeAsDoubleArray(vc, GATKVCFConstants.TUMOR_LOD_KEY);
         final int indexOfMaxTumorLod = MathUtils.maxElementIndex(tumorLods);
 
-        Genotype tumorGenotype = vc.getGenotype(tumorSample);
-        final int[] tumorAlleleDepths = tumorGenotype.getAD();
+        final int[] tumorAlleleDepths = sumADsOverSamples(vc, false);
         final int tumorDepth = (int) MathUtils.sum(tumorAlleleDepths);
         final int tumorAltDepth = tumorAlleleDepths[indexOfMaxTumorLod + 1];
 
@@ -313,13 +311,11 @@ public class Mutect2FilteringEngine {
     // This filter checks for the case in which PCR-duplicates with unique UMIs (which we assume is caused by false adapter priming)
     // amplify the erroneous signal for an alternate allele.
     private void applyDuplicatedAltReadFilter(final M2FiltersArgumentCollection MTFAC, final VariantContext vc, final FilterResult filterResult) {
-        final Genotype tumorGenotype = vc.getGenotype(tumorSample);
-
-        if (!tumorGenotype.hasExtendedAttribute(UniqueAltReadCount.UNIQUE_ALT_READ_SET_COUNT_KEY)) {
+        if (vc.hasAttribute(UniqueAltReadCount.KEY)) {
             return;
         }
 
-        final int uniqueReadSetCount = GATKProtectedVariantContextUtils.getAttributeAsInt(tumorGenotype, UniqueAltReadCount.UNIQUE_ALT_READ_SET_COUNT_KEY, -1);
+        final int uniqueReadSetCount = vc.getAttributeAsInt(UniqueAltReadCount.KEY, 1);
 
         if (uniqueReadSetCount <= MTFAC.uniqueAltReadCount) {
             filterResult.addFilter(GATKVCFConstants.DUPLICATED_EVIDENCE_FILTER_NAME);
@@ -386,11 +382,8 @@ public class Mutect2FilteringEngine {
     }
 
     private void applyNRatioFilter(final M2FiltersArgumentCollection MTFAC, final VariantContext vc, final FilterResult filterResult) {
-        final Genotype tumorGenotype = vc.getGenotype(tumorSample);
-        final double[] alleleFractions = GATKProtectedVariantContextUtils.getAttributeAsDoubleArray(tumorGenotype, VCFConstants.ALLELE_FREQUENCY_KEY,
-                () -> new double[] {1.0}, 1.0);
-        final int maxFractionIndex = MathUtils.maxElementIndex(alleleFractions);
-        final int altCount = sumADsOverSamples(vc, true)[maxFractionIndex + 1];
+        final int[] ADs = sumADsOverSamples(vc, true);
+        final int altCount = (int) MathUtils.sum(ADs) - ADs[0];
       
         // if there is no NCount annotation or the altCount is 0, don't apply the filter
         if (altCount == 0 ) {

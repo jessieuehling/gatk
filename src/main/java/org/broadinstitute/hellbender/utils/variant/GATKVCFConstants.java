@@ -113,9 +113,10 @@ public final class GATKVCFConstants {
     public static final String CONTAMINATION_QUAL_ATTRIBUTE =  "CONTQ";
     public static final String ORIGINAL_CONTIG_MISMATCH_KEY =       "OCM";
     public static final String N_COUNT_KEY =                        "NCount";
+    public static final String UNIQUE_ALT_READ_SET_COUNT_KEY = "UNIQ_ALT_READ_COUNT";
     public static final List<String> STANDARD_MUTECT_INFO_FIELDS = Arrays.asList(NORMAL_LOD_KEY, TUMOR_LOD_KEY, NORMAL_ARTIFACT_LOD_ATTRIBUTE,
             EVENT_COUNT_IN_HAPLOTYPE_KEY, IN_PON_VCF_ATTRIBUTE, POPULATION_AF_VCF_ATTRIBUTE, GERMLINE_QUAL_VCF_ATTRIBUTE, CONTAMINATION_QUAL_ATTRIBUTE,
-            ORIGINAL_CONTIG_MISMATCH_KEY, N_COUNT_KEY);
+            ORIGINAL_CONTIG_MISMATCH_KEY, N_COUNT_KEY, UNIQUE_ALT_READ_SET_COUNT_KEY);
 
     // FORMAT keys
     public static final String ALLELE_BALANCE_KEY =                 "AB";

@@ -34,7 +34,7 @@ public class UniqueAltReadCountUnitTest {
 
         final Genotype genotype = genotypeBuilder.make();
 
-        final int uniqueReadSetCount = GATKProtectedVariantContextUtils.getAttributeAsInt(genotype, UniqueAltReadCount.UNIQUE_ALT_READ_SET_COUNT_KEY, -1);
+        final int uniqueReadSetCount = GATKProtectedVariantContextUtils.getAttributeAsInt(genotype, UniqueAltReadCount.KEY, -1);
         Assert.assertEquals(uniqueReadSetCount, 1);
     }
 
@@ -50,7 +50,7 @@ public class UniqueAltReadCountUnitTest {
 
         final Genotype genotype1 = genotypeBuilder1.make();
 
-        final int uniqueReadSetCount1 = GATKProtectedVariantContextUtils.getAttributeAsInt(genotype1, UniqueAltReadCount.UNIQUE_ALT_READ_SET_COUNT_KEY, -1);
+        final int uniqueReadSetCount1 = GATKProtectedVariantContextUtils.getAttributeAsInt(genotype1, UniqueAltReadCount.KEY, -1);
 
         Assert.assertEquals(uniqueReadSetCount1, numUniqueStarts1);
 
@@ -62,7 +62,7 @@ public class UniqueAltReadCountUnitTest {
 
         final Genotype genotype2 = genotypeBuilder2.make();
 
-        final int uniqueReadSetCount2 = GATKProtectedVariantContextUtils.getAttributeAsInt(genotype2, UniqueAltReadCount.UNIQUE_ALT_READ_SET_COUNT_KEY, -1);
+        final int uniqueReadSetCount2 = GATKProtectedVariantContextUtils.getAttributeAsInt(genotype2, UniqueAltReadCount.KEY, -1);
 
         Assert.assertEquals(uniqueReadSetCount2, numUniqueStarts2);
     }
