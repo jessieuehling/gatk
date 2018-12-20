@@ -102,12 +102,10 @@ public final class FilterMutectCalls extends TwoPassVariantWalker {
         vcfWriter = createVCFWriter(new File(outputVcf));
         vcfWriter.writeHeader(vcfHeader);
 
-        final String tumorSample = getTumorSampleName();
-        final VCFHeaderLine normalSampleHeaderLine = getHeaderForVariants().getMetaDataLine(Mutect2Engine.NORMAL_SAMPLE_KEY_IN_VCF_HEADER);
-        final Optional<String> normalSample = normalSampleHeaderLine == null ? Optional.empty() : Optional.of(normalSampleHeaderLine.getValue());
+        final Optional<String> normalSample = getNormalSampleName();
 
         filteringEngine = new Mutect2FilteringEngine(MTFAC, tumorSample, normalSample);
-        filteringFirstPass = new FilteringFirstPass(tumorSample);
+        filteringFirstPass = new FilteringFirstPass(normalSample);
     }
 
     @Override
@@ -145,8 +143,9 @@ public final class FilterMutectCalls extends TwoPassVariantWalker {
         }
     }
 
-    private String getTumorSampleName() {
-        return MTFAC.mitochondria ? getMitoSampleName() : getHeaderForVariants().getMetaDataLine(Mutect2Engine.TUMOR_SAMPLE_KEY_IN_VCF_HEADER).getValue();
+    private Optional<String> getNormalSampleName() {
+        final VCFHeaderLine normalSampleHeaderLine = getHeaderForVariants().getMetaDataLine(Mutect2Engine.NORMAL_SAMPLE_KEY_IN_VCF_HEADER);
+        return normalSampleHeaderLine == null ? Optional.empty() : Optional.of(normalSampleHeaderLine.getValue());
     }
 
     private String getMitoSampleName() {
