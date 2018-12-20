@@ -110,6 +110,13 @@ public class Mutect2FilteringEngine {
         return ADs;
     }
 
+    private double[] weightedAverageOfTumorAFs(final VariantContext vc) {
+        final int[] ADs = new int[vc.getNAlleles()];
+        vc.getGenotypes().stream().filter(g -> !normalSample.isPresent() || normalSample.get().equals(g.getSampleName()))
+                .map(Genotype::getAD).forEach(ad -> new IndexRange(0, vc.getNAlleles()).forEach(n -> ADs[n] += ad[n]));
+        return ADs;
+    }
+
     private static void applyPanelOfNormalsFilter(final M2FiltersArgumentCollection MTFAC, final VariantContext vc, final FilterResult filterResult) {
         final boolean siteInPoN = vc.hasAttribute(GATKVCFConstants.IN_PON_VCF_ATTRIBUTE);
         if (siteInPoN) {
@@ -189,7 +196,7 @@ public class Mutect2FilteringEngine {
             final double[] altAlleleFractions = GATKProtectedVariantContextUtils.getAttributeAsDoubleArray(vc.getGenotype(tumorSample), GATKVCFConstants.ALLELE_FRACTION_KEY, () -> null, 0);
 
             // note that this includes the ref
-            final int[] alleleCounts = vc.getGenotype(tumorSample).getAD();
+            final int[] alleleCounts = sumADsOverSamples(vc, false);
             // exclude the ref
             final int[] altCounts = Arrays.copyOfRange(alleleCounts, 1, alleleCounts.length);
 
