@@ -5,7 +5,6 @@ import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFConstants;
 import org.apache.commons.math3.distribution.BinomialDistribution;
-import org.apache.commons.math3.util.MathArrays;
 import org.broadinstitute.hellbender.tools.walkers.annotator.*;
 import org.broadinstitute.hellbender.tools.walkers.contamination.ContaminationRecord;
 import org.broadinstitute.hellbender.tools.walkers.contamination.MinorAlleleFractionRecord;
@@ -91,7 +90,7 @@ public class Mutect2FilteringEngine {
             if (referenceSTRBaseCount >= MTFAC.minPcrSlippageBases && Math.abs(numPCRSlips) == 1) {
                 // calculate the p-value that out of n reads we would have at least k slippage reads
                 // if this p-value is small we keep the variant (reject the PCR slippage hypothesis)
-                final int[] ADs = sumADsOverTumorSamples(vc);
+                final int[] ADs = sumADsOverSamples(vc, false);
 
                 final int depth = ADs == null ? 0 : (int) MathUtils.sum(ADs);
                 final double oneSidedPValueOfSlippage = (ADs == null || ADs.length < 2) ? 1.0 :
@@ -103,9 +102,9 @@ public class Mutect2FilteringEngine {
         }
     }
 
-    private int[] sumADsOverTumorSamples(final VariantContext vc) {
+    private int[] sumADsOverSamples(final VariantContext vc, final boolean includeNormal) {
         final int[] ADs = new int[vc.getNAlleles()];
-        vc.getGenotypes().stream().filter(g -> !normalSample.isPresent() || normalSample.get().equals(g.getSampleName()))
+        vc.getGenotypes().stream().filter(g -> includeNormal || !normalSample.isPresent() || normalSample.get().equals(g.getSampleName()))
                 .map(Genotype::getAD).forEach(ad -> new IndexRange(0, vc.getNAlleles()).forEach(n -> ADs[n] += ad[n]));
         return ADs;
     }
@@ -380,21 +379,19 @@ public class Mutect2FilteringEngine {
         }
     }
 
-    // TODO: sum over all tumor samples
     private void applyNRatioFilter(final M2FiltersArgumentCollection MTFAC, final VariantContext vc, final FilterResult filterResult) {
         final Genotype tumorGenotype = vc.getGenotype(tumorSample);
         final double[] alleleFractions = GATKProtectedVariantContextUtils.getAttributeAsDoubleArray(tumorGenotype, VCFConstants.ALLELE_FREQUENCY_KEY,
                 () -> new double[] {1.0}, 1.0);
         final int maxFractionIndex = MathUtils.maxElementIndex(alleleFractions);
-        final int[] ADs = tumorGenotype.getAD();
-        final int altCount = ADs[maxFractionIndex + 1];
+        final int altCount = sumADsOverSamples(vc, true)[maxFractionIndex + 1];
       
         // if there is no NCount annotation or the altCount is 0, don't apply the filter
-        if (!tumorGenotype.hasExtendedAttribute(GATKVCFConstants.N_COUNT_KEY) || altCount == 0 ) {
+        if (altCount == 0 ) {
             return;
         }
 
-        final int NCount = GATKProtectedVariantContextUtils.getAttributeAsInt(tumorGenotype, GATKVCFConstants.N_COUNT_KEY,-1);
+        final int NCount = vc.getAttributeAsInt(GATKVCFConstants.N_COUNT_KEY,0);
 
         if ((double) NCount / altCount >= MTFAC.nRatio ) {
             filterResult.addFilter(GATKVCFConstants.N_RATIO_FILTER_NAME);

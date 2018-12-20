@@ -76,7 +76,6 @@ public final class GATKVCFConstants {
     public static final String NON_DIPLOID_RATIO_KEY =              "OND";
     public static final String ORIGINAL_CONTIG_KEY =                "OriginalChr"; //LiftoverVariants
     public static final String ORIGINAL_START_KEY =                 "OriginalStart"; //LiftoverVariants
-    public static final String N_COUNT_KEY =                        "NCount";
     public static final String RBP_INCONSISTENT_KEY =               "PhasingInconsistent"; //ReadBackedPhasing
     public static final String GENOTYPE_PRIOR_KEY =                 "PG";
     public static final String POSITIVE_LABEL_KEY =                 "POSITIVE_TRAIN_SITE";
@@ -113,9 +112,10 @@ public final class GATKVCFConstants {
     public static final String REALIGNMENT_COUNTS_VCF_ATTRIBUTE =   "RCNTS";
     public static final String CONTAMINATION_QUAL_ATTRIBUTE =  "CONTQ";
     public static final String ORIGINAL_CONTIG_MISMATCH_KEY =       "OCM";
+    public static final String N_COUNT_KEY =                        "NCount";
     public static final List<String> STANDARD_MUTECT_INFO_FIELDS = Arrays.asList(NORMAL_LOD_KEY, TUMOR_LOD_KEY, NORMAL_ARTIFACT_LOD_ATTRIBUTE,
             EVENT_COUNT_IN_HAPLOTYPE_KEY, IN_PON_VCF_ATTRIBUTE, POPULATION_AF_VCF_ATTRIBUTE, GERMLINE_QUAL_VCF_ATTRIBUTE, CONTAMINATION_QUAL_ATTRIBUTE,
-            ORIGINAL_CONTIG_MISMATCH_KEY);
+            ORIGINAL_CONTIG_MISMATCH_KEY, N_COUNT_KEY);
 
     // FORMAT keys
     public static final String ALLELE_BALANCE_KEY =                 "AB";
