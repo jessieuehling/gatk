@@ -112,8 +112,10 @@ public final class GATKVCFConstants {
     public static final String GERMLINE_QUAL_VCF_ATTRIBUTE =  "GERMQ";
     public static final String REALIGNMENT_COUNTS_VCF_ATTRIBUTE =   "RCNTS";
     public static final String CONTAMINATION_QUAL_ATTRIBUTE =  "CONTQ";
+    public static final String ORIGINAL_CONTIG_MISMATCH_KEY =       "OCM";
     public static final List<String> STANDARD_MUTECT_INFO_FIELDS = Arrays.asList(NORMAL_LOD_KEY, TUMOR_LOD_KEY, NORMAL_ARTIFACT_LOD_ATTRIBUTE,
-            EVENT_COUNT_IN_HAPLOTYPE_KEY, IN_PON_VCF_ATTRIBUTE, POPULATION_AF_VCF_ATTRIBUTE, GERMLINE_QUAL_VCF_ATTRIBUTE, CONTAMINATION_QUAL_ATTRIBUTE);
+            EVENT_COUNT_IN_HAPLOTYPE_KEY, IN_PON_VCF_ATTRIBUTE, POPULATION_AF_VCF_ATTRIBUTE, GERMLINE_QUAL_VCF_ATTRIBUTE, CONTAMINATION_QUAL_ATTRIBUTE,
+            ORIGINAL_CONTIG_MISMATCH_KEY);
 
     // FORMAT keys
     public static final String ALLELE_BALANCE_KEY =                 "AB";
@@ -141,7 +143,6 @@ public final class GATKVCFConstants {
     public static final String ROF_POSTERIOR_KEY =                  "P_RO"; // For read orientation filter
     public static final String ROF_PRIOR_KEY =                      "P_PRIOR_RO";
     public static final String ROF_TYPE_KEY =                       "ROF_TYPE";
-    public static final String ORIGINAL_CONTIG_MISMATCH_KEY =       "OCM";
     public static final String POTENTIAL_POLYMORPHIC_NUMT_KEY =     "NUMT";
 
     //FILTERS

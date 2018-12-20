@@ -616,7 +616,7 @@ public class Mutect2IntegrationTest extends CommandLineProgramTest {
                 "chrM:750-750 [A*, G]");
         Assert.assertTrue(expectedKeys.stream().allMatch(variantKeys::contains));
 
-        Assert.assertEquals(variants.get(0).getGenotype("NA12878").getAnyAttribute(GATKVCFConstants.ORIGINAL_CONTIG_MISMATCH_KEY), "1513");
+        Assert.assertEquals(variants.get(0).getAttributeAsInt(GATKVCFConstants.ORIGINAL_CONTIG_MISMATCH_KEY, 0), "1513");
         Assert.assertEquals(variants.get(0).getGenotype("NA12878").getAnyAttribute(GATKVCFConstants.POTENTIAL_POLYMORPHIC_NUMT_KEY), "true");
     }
 

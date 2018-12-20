@@ -115,7 +115,6 @@ public class GATKVCFHeaderLines {
         addFormatLine(new VCFFormatHeaderLine(ROF_POSTERIOR_KEY, 1, VCFHeaderLineType.Float, "posterior probability of read orientation-based artifacts"));
         addFormatLine(new VCFFormatHeaderLine(ROF_PRIOR_KEY, 1, VCFHeaderLineType.Float, "prior probability of read orientation-based artifacts under the present referene context"));
         addFormatLine(new VCFFormatHeaderLine(ROF_TYPE_KEY, 1, VCFHeaderLineType.String, "type of read orientation artifact (F1R2 or F2R1)"));
-        addFormatLine(new VCFFormatHeaderLine(ORIGINAL_CONTIG_MISMATCH_KEY, 1, VCFHeaderLineType.Integer, "Number of alt reads whose original alignment doesn't match the current contig."));
         addFormatLine(new VCFFormatHeaderLine(POTENTIAL_POLYMORPHIC_NUMT_KEY, 1, VCFHeaderLineType.String, "Potentially a polymorphic NuMT false positive rather than a real mitochondrial variant."));
 
         addInfoLine(new VCFInfoHeaderLine(MLE_ALLELE_COUNT_KEY, VCFHeaderLineCount.A, VCFHeaderLineType.Integer, "Maximum likelihood expectation (MLE) for the allele counts (not necessarily the same as the AC), for each ALT allele, in the same order as listed"));
@@ -209,5 +208,7 @@ public class GATKVCFHeaderLines {
         addInfoLine(new VCFInfoHeaderLine(GERMLINE_QUAL_VCF_ATTRIBUTE, VCFHeaderLineCount.A, VCFHeaderLineType.Integer, "Phred-scaled qualities that alt allele are not germline variants"));
         addInfoLine(new VCFInfoHeaderLine(CONTAMINATION_QUAL_ATTRIBUTE, 1, VCFHeaderLineType.Float, "Phred-scaled qualities that alt allele are not due to contamination"));
         addInfoLine(new VCFInfoHeaderLine(NORMAL_ARTIFACT_LOD_ATTRIBUTE, VCFHeaderLineCount.A, VCFHeaderLineType.Float, "log odds of artifact in normal with same allele fraction as tumor"));
+        addInfoLine(new VCFInfoHeaderLine(ORIGINAL_CONTIG_MISMATCH_KEY, 1, VCFHeaderLineType.Integer, "Number of alt reads whose original alignment doesn't match the current contig."));
+
     }
 }

@@ -395,15 +395,9 @@ public class Mutect2FilteringEngine {
     //TODO: make this an INFO field annotation
     private void applyChimericOriginalAlignmentFilter(final M2FiltersArgumentCollection MTFAC, final VariantContext vc, final FilterResult filterResult) {
 
-        final Genotype tumorGenotype = vc.getGenotype(tumorSample);
-        final double[] alleleFractions = GATKProtectedVariantContextUtils.getAttributeAsDoubleArray(tumorGenotype, VCFConstants.ALLELE_FREQUENCY_KEY,
-                () -> new double[] {1.0}, 1.0);
-        final int maxFractionIndex = MathUtils.maxElementIndex(alleleFractions);
-        final int[] ADs = tumorGenotype.getAD();
-        final int altCount = ADs[maxFractionIndex + 1];
-
-        if (tumorGenotype.hasAnyAttribute(GATKVCFConstants.ORIGINAL_CONTIG_MISMATCH_KEY) && vc.isBiallelic()) {
-            final int nonMtOa = GATKProtectedVariantContextUtils.getAttributeAsInt(tumorGenotype, GATKVCFConstants.ORIGINAL_CONTIG_MISMATCH_KEY, -1);
+        if (vc.hasAttribute(GATKVCFConstants.ORIGINAL_CONTIG_MISMATCH_KEY) && vc.isBiallelic()) {
+            final int altCount = vc.getGenotypes().stream().mapToInt(g -> g.getAD()[1]).sum();
+            final int nonMtOa = vc.getAttributeAsInt(GATKVCFConstants.ORIGINAL_CONTIG_MISMATCH_KEY, 0);
             if ((double) nonMtOa / altCount > MTFAC.nonMtAltByAlt) {
                 filterResult.addFilter(GATKVCFConstants.CHIMERIC_ORIGINAL_ALIGNMENT_FILTER_NAME);
             }
