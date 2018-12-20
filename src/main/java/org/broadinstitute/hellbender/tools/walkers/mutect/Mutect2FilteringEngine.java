@@ -5,6 +5,7 @@ import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFConstants;
 import org.apache.commons.math3.distribution.BinomialDistribution;
+import org.apache.commons.math3.util.MathArrays;
 import org.broadinstitute.hellbender.tools.walkers.annotator.*;
 import org.broadinstitute.hellbender.tools.walkers.contamination.ContaminationRecord;
 import org.broadinstitute.hellbender.tools.walkers.contamination.MinorAlleleFractionRecord;
@@ -90,7 +91,8 @@ public class Mutect2FilteringEngine {
             if (referenceSTRBaseCount >= MTFAC.minPcrSlippageBases && Math.abs(numPCRSlips) == 1) {
                 // calculate the p-value that out of n reads we would have at least k slippage reads
                 // if this p-value is small we keep the variant (reject the PCR slippage hypothesis)
-                final int[] ADs = vc.getGenotype(tumorSample).getAD();
+                final int[] ADs = sumADsOverTumorSamples(vc);
+
                 final int depth = ADs == null ? 0 : (int) MathUtils.sum(ADs);
                 final double oneSidedPValueOfSlippage = (ADs == null || ADs.length < 2) ? 1.0 :
                         new BinomialDistribution(null, depth, MTFAC.pcrSlippageRate).cumulativeProbability(ADs[1] - 1, depth);
@@ -99,6 +101,13 @@ public class Mutect2FilteringEngine {
                 }
             }
         }
+    }
+
+    private int[] sumADsOverTumorSamples(final VariantContext vc) {
+        final int[] ADs = new int[vc.getNAlleles()];
+        vc.getGenotypes().stream().filter(g -> !normalSample.isPresent() || normalSample.get().equals(g.getSampleName()))
+                .map(Genotype::getAD).forEach(ad -> new IndexRange(0, vc.getNAlleles()).forEach(n -> ADs[n] += ad[n]));
+        return ADs;
     }
 
     private static void applyPanelOfNormalsFilter(final M2FiltersArgumentCollection MTFAC, final VariantContext vc, final FilterResult filterResult) {
@@ -392,7 +401,6 @@ public class Mutect2FilteringEngine {
         }
     }
 
-    //TODO: make this an INFO field annotation
     private void applyChimericOriginalAlignmentFilter(final M2FiltersArgumentCollection MTFAC, final VariantContext vc, final FilterResult filterResult) {
 
         if (vc.hasAttribute(GATKVCFConstants.ORIGINAL_CONTIG_MISMATCH_KEY) && vc.isBiallelic()) {
@@ -446,9 +454,4 @@ public class Mutect2FilteringEngine {
 
         return filterResult;
     }
-
-    private int[] getIntArrayTumorField(final VariantContext vc, final String key) {
-        return GATKProtectedVariantContextUtils.getAttributeAsIntArray(vc.getGenotype(tumorSample), key, () -> null, 0);
-    }
-
 }
