@@ -4,6 +4,7 @@ import htsjdk.samtools.util.OverlapDetector;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFConstants;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.math3.distribution.BinomialDistribution;
 import org.broadinstitute.hellbender.tools.walkers.annotator.*;
 import org.broadinstitute.hellbender.tools.walkers.contamination.ContaminationRecord;
@@ -357,24 +358,29 @@ public class Mutect2FilteringEngine {
         }
     }
 
-    //TODO: add up all tumor counts for each strand
     private void applyStrictStrandFilter(final M2FiltersArgumentCollection MTFAC, final VariantContext vc, final FilterResult filterResult) {
 
         if (! MTFAC.strictStrandBias) {
             return;
         }
 
-        final Genotype tumorGenotype = vc.getGenotype(tumorSample);
-        if (! tumorGenotype.hasExtendedAttribute(GATKVCFConstants.STRAND_BIAS_BY_SAMPLE_KEY)) {
-            return;
-        }
-        final int[] strandBiasCounts = GATKProtectedVariantContextUtils.getAttributeAsIntArray(tumorGenotype, GATKVCFConstants.STRAND_BIAS_BY_SAMPLE_KEY, ()->null, -1);
+        final MutableInt altForwardCount = new MutableInt(0);
+        final MutableInt altReverseCount = new MutableInt(0);
 
-        final int altForwardCount = StrandBiasBySample.getAltForwardCountFromFlattenedContingencyTable(strandBiasCounts);
-        final int altReverseCount = StrandBiasBySample.getAltReverseCountFromFlattenedContingencyTable(strandBiasCounts);
+        for (final Genotype g : vc.getGenotypes()) {
+            if (normalSample.isPresent() && normalSample.get().equals(g.getSampleName())) {
+                continue;
+            } else if (!g.hasExtendedAttribute(GATKVCFConstants.STRAND_BIAS_BY_SAMPLE_KEY)) {
+                return;
+            } else {
+                final int[] strandBiasCounts = GATKProtectedVariantContextUtils.getAttributeAsIntArray(g, GATKVCFConstants.STRAND_BIAS_BY_SAMPLE_KEY, () -> null, 0);
+                altForwardCount.add(StrandBiasBySample.getAltForwardCountFromFlattenedContingencyTable(strandBiasCounts));
+                altReverseCount.add(StrandBiasBySample.getAltReverseCountFromFlattenedContingencyTable(strandBiasCounts));
+            }
+        }
 
         // filter if there is no alt evidence in the forward or reverse strand
-        if ( altForwardCount == 0 || altReverseCount == 0) {
+        if ( altForwardCount.getValue() == 0 || altReverseCount.getValue() == 0) {
             filterResult.addFilter(GATKVCFConstants.STRICT_STRAND_BIAS_FILTER_NAME);
         }
     }
