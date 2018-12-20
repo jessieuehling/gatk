@@ -1,5 +1,6 @@
 package org.broadinstitute.hellbender.tools.walkers.mutect;
 
+import com.google.common.primitives.Doubles;
 import htsjdk.samtools.util.OverlapDetector;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -279,24 +280,25 @@ public class Mutect2FilteringEngine {
     }
 
     private void applyStrandArtifactFilter(final M2FiltersArgumentCollection MTFAC, final VariantContext vc, final FilterResult filterResult) {
-        Genotype tumorGenotype = vc.getGenotype(tumorSample);
-        final double[] posteriorProbabilities = GATKProtectedVariantContextUtils.getAttributeAsDoubleArray(
-                tumorGenotype, (GATKVCFConstants.STRAND_ARTIFACT_POSTERIOR_KEY), () -> null, -1);
-        final double[] mapAlleleFractionEstimates = GATKProtectedVariantContextUtils.getAttributeAsDoubleArray(
-                tumorGenotype, (GATKVCFConstants.STRAND_ARTIFACT_AF_KEY), () -> null, -1);
+        if (!vc.hasAttribute(GATKVCFConstants.STRAND_ARTIFACT_POSTERIOR_KEY)) {
+            return;
+        }
+
+        final List<Double> posteriorProbabilities = vc.getAttributeAsDoubleList(GATKVCFConstants.STRAND_ARTIFACT_POSTERIOR_KEY, 0.0);
+        final List<Double> mapAlleleFractionEstimates = vc.getAttributeAsDoubleList(GATKVCFConstants.STRAND_ARTIFACT_AF_KEY, 0.0);
 
         if (posteriorProbabilities == null || mapAlleleFractionEstimates == null){
             return;
         }
 
-        final int maxZIndex = MathUtils.maxElementIndex(posteriorProbabilities);
+        final int maxZIndex = MathUtils.maxElementIndex(Doubles.toArray(posteriorProbabilities));
 
         if (maxZIndex == StrandArtifact.ArtifactState.NO_ARTIFACT.ordinal()){
             return;
         }
 
-        if (posteriorProbabilities[maxZIndex] > MTFAC.strandArtifactPosteriorProbThreshold &&
-                mapAlleleFractionEstimates[maxZIndex] < MTFAC.strandArtifactAlleleFractionThreshold){
+        if (posteriorProbabilities.get(maxZIndex) > MTFAC.strandArtifactPosteriorProbThreshold &&
+                mapAlleleFractionEstimates.get(maxZIndex) < MTFAC.strandArtifactAlleleFractionThreshold){
             filterResult.addFilter(GATKVCFConstants.STRAND_ARTIFACT_FILTER_NAME);
         }
     }

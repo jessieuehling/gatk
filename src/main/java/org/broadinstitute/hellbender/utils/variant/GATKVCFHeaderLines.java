@@ -210,7 +210,8 @@ public class GATKVCFHeaderLines {
         addInfoLine(new VCFInfoHeaderLine(ORIGINAL_CONTIG_MISMATCH_KEY, 1, VCFHeaderLineType.Integer, "Number of alt reads whose original alignment doesn't match the current contig."));
         addInfoLine(new VCFInfoHeaderLine(N_COUNT_KEY, 1, VCFHeaderLineType.Integer, "Count of N bases in the pileup"));
         addInfoLine(new VCFInfoHeaderLine(UNIQUE_ALT_READ_SET_COUNT_KEY, 1, VCFHeaderLineType.Integer, "Number of ALT reads with unique start and mate end positions at a variant site"));
-
+        addInfoLine(new VCFInfoHeaderLine(STRAND_ARTIFACT_AF_KEY, 3, VCFHeaderLineType.Float, "MAP estimates of allele fraction given z"));
+        addInfoLine(new VCFInfoHeaderLine(STRAND_ARTIFACT_POSTERIOR_KEY, 3, VCFHeaderLineType.Float, "posterior probabilities of the presence of strand artifact"));
 
     }
 }

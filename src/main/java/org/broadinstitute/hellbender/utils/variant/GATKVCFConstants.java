@@ -114,9 +114,11 @@ public final class GATKVCFConstants {
     public static final String ORIGINAL_CONTIG_MISMATCH_KEY =       "OCM";
     public static final String N_COUNT_KEY =                        "NCount";
     public static final String UNIQUE_ALT_READ_SET_COUNT_KEY = "UNIQ_ALT_READ_COUNT";
+    public static final String STRAND_ARTIFACT_POSTERIOR_KEY =      "SAPP"; // Strand Artifact Filter
+    public static final String STRAND_ARTIFACT_AF_KEY =             "SAAF"; // Strand Artifact Filter
     public static final List<String> STANDARD_MUTECT_INFO_FIELDS = Arrays.asList(NORMAL_LOD_KEY, TUMOR_LOD_KEY, NORMAL_ARTIFACT_LOD_ATTRIBUTE,
             EVENT_COUNT_IN_HAPLOTYPE_KEY, IN_PON_VCF_ATTRIBUTE, POPULATION_AF_VCF_ATTRIBUTE, GERMLINE_QUAL_VCF_ATTRIBUTE, CONTAMINATION_QUAL_ATTRIBUTE,
-            ORIGINAL_CONTIG_MISMATCH_KEY, N_COUNT_KEY, UNIQUE_ALT_READ_SET_COUNT_KEY);
+            ORIGINAL_CONTIG_MISMATCH_KEY, N_COUNT_KEY, UNIQUE_ALT_READ_SET_COUNT_KEY, STRAND_ARTIFACT_AF_KEY, STRAND_ARTIFACT_POSTERIOR_KEY);
 
     // FORMAT keys
     public static final String ALLELE_BALANCE_KEY =                 "AB";
@@ -139,8 +141,6 @@ public final class GATKVCFConstants {
 
     // M2-specific FORMAT keys
     public static final String ALLELE_FRACTION_KEY =                "AF";
-    public static final String STRAND_ARTIFACT_POSTERIOR_KEY =      "SAPP"; // Strand Artifact Filter
-    public static final String STRAND_ARTIFACT_AF_KEY =             "SAAF"; // Strand Artifact Filter
     public static final String ROF_POSTERIOR_KEY =                  "P_RO"; // For read orientation filter
     public static final String ROF_PRIOR_KEY =                      "P_PRIOR_RO";
     public static final String ROF_TYPE_KEY =                       "ROF_TYPE";
