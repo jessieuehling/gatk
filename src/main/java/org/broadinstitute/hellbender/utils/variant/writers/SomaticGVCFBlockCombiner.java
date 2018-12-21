@@ -77,7 +77,7 @@ public class SomaticGVCFBlockCombiner extends GVCFBlockCombiner{
         Utils.nonEmpty(gqPartitions);
         Utils.containsNoNull(gqPartitions, "The list of TLOD partitions contains a null integer");
         final RangeMap<Integer, Range<Integer>> result = TreeRangeMap.create();
-        int lastThreshold = -Integer.MAX_VALUE;
+        int lastThreshold = Integer.MIN_VALUE;
         for (final Number num : gqPartitions) {
             final double value = num.doubleValue();
             final int intThreshold = convertLODtoInt(value, partitionPrecision);

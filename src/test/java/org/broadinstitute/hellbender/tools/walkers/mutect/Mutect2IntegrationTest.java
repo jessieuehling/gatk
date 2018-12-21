@@ -608,6 +608,8 @@ public class Mutect2IntegrationTest extends CommandLineProgramTest {
                 "-" + M2ArgumentCollection.TUMOR_SAMPLE_SHORT_NAME, "NA12878",
                 "-R", MITO_REF.getAbsolutePath(),
                 "-L", "chrM:1-1000",
+                "--" + M2ArgumentCollection.MEDIAN_AUTOSOMAL_COVERAGE_LONG_NAME, "1556", //arbitrary "autosomal" mean coverage used only for testing
+                "--" + M2ArgumentCollection.MITOCHONDRIA_MODE_LONG_NAME,
                 "-O", standardVcf.getAbsolutePath(),
                 "-ERC", "GVCF",
                 "-LODB", "-2.0",
@@ -647,6 +649,8 @@ public class Mutect2IntegrationTest extends CommandLineProgramTest {
                 "-" + M2ArgumentCollection.TUMOR_SAMPLE_SHORT_NAME, "NA12878",
                 "-R", MITO_REF.getAbsolutePath(),
                 "-L", "chrM:1-1000",
+                "--" + M2ArgumentCollection.MEDIAN_AUTOSOMAL_COVERAGE_LONG_NAME, "1556", //arbitrary "autosomal" mean coverage used only for testing
+                "--" + M2ArgumentCollection.MITOCHONDRIA_MODE_LONG_NAME,
                 "-O", unthresholded.getAbsolutePath(),
                 "-ERC", "GVCF",
                 "-LODB", "-2.0",
