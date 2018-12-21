@@ -292,7 +292,8 @@ public final class ModelSegments extends CommandLineProgram {
     private String outputDir;
 
     @Argument(
-            doc = "Minimum total count for filtering allelic counts, if available.",
+            doc = "Minimum total count for filtering allelic counts, if available.  " +
+                    "In matched-normal mode, this filter will only be applied to the normal allelic counts.",
             fullName = MINIMUM_TOTAL_ALLELE_COUNT_LONG_NAME,
             minValue = 0,
             optional = true
@@ -619,15 +620,7 @@ public final class ModelSegments extends CommandLineProgram {
 
         logger.info("Genotyping heterozygous sites from available allelic counts...");
 
-        //filter on total count in case sample
-        logger.info(String.format("Filtering allelic counts with total count less than %d...", minTotalAlleleCount));
-        AllelicCountCollection filteredAllelicCounts = new AllelicCountCollection(
-                metadata,
-                allelicCounts.getRecords().stream()
-                        .filter(ac -> ac.getTotalReadCount() >= minTotalAlleleCount)
-                        .collect(Collectors.toList()));
-        logger.info(String.format("Retained %d / %d sites after filtering on total count...",
-                filteredAllelicCounts.size(), allelicCounts.size()));
+        AllelicCountCollection filteredAllelicCounts = allelicCounts;
 
         //filter on overlap with copy-ratio intervals, if available
         if (denoisedCopyRatios != null) {
@@ -645,6 +638,17 @@ public final class ModelSegments extends CommandLineProgram {
         if (normalAllelicCounts == null) {
             //filter on homozygosity in case sample
             logger.info("No matched normal was provided, not running in matched-normal mode...");
+
+            //filter on total count in case sample
+            logger.info(String.format("Filtering allelic counts with total count less than %d...", minTotalAlleleCount));
+            filteredAllelicCounts = new AllelicCountCollection(
+                    metadata,
+                    filteredAllelicCounts.getRecords().stream()
+                            .filter(ac -> ac.getTotalReadCount() >= minTotalAlleleCount)
+                            .collect(Collectors.toList()));
+            logger.info(String.format("Retained %d / %d sites after filtering on total count...",
+                    filteredAllelicCounts.size(), allelicCounts.size()));
+
             logger.info("Performing binomial testing and filtering homozygous allelic counts...");
             hetAllelicCounts = new AllelicCountCollection(
                     metadata,
