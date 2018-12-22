@@ -580,7 +580,7 @@ task ModelSegments {
 
     # default values are min_total_allele_count_ = 0 in matched-normal mode
     #                                            = 30 in case-only mode
-    String min_total_allele_count_ = if defined(min_total_allele_count) then min_total_allele_count else (if defined(normal_allelic_counts) then "0" else "30")
+    Int min_total_allele_count_ = if defined(min_total_allele_count) then min_total_allele_count else (if defined(normal_allelic_counts) then 0 else 30)
 
     command <<<
         set -e
@@ -603,14 +603,14 @@ task ModelSegments {
             --window-size ${sep=" --window-size " window_sizes} \
             --number-of-changepoints-penalty-factor ${default="1.0" num_changepoints_penalty_factor} \
             --minor-allele-fraction-prior-alpha ${default="25.0" minor_allele_fraction_prior_alpha} \
-            --number-of-samples-copy-ratio ${default=100 num_samples_copy_ratio} \
-            --number-of-burn-in-samples-copy-ratio ${default=50 num_burn_in_copy_ratio} \
-            --number-of-samples-allele-fraction ${default=100 num_samples_allele_fraction} \
-            --number-of-burn-in-samples-allele-fraction ${default=50 num_burn_in_allele_fraction} \
+            --number-of-samples-copy-ratio ${default="100" num_samples_copy_ratio} \
+            --number-of-burn-in-samples-copy-ratio ${default="50" num_burn_in_copy_ratio} \
+            --number-of-samples-allele-fraction ${default="100" num_samples_allele_fraction} \
+            --number-of-burn-in-samples-allele-fraction ${default="50" num_burn_in_allele_fraction} \
             --smoothing-credible-interval-threshold-copy-ratio ${default="2.0" smoothing_threshold_copy_ratio} \
             --smoothing-credible-interval-threshold-allele-fraction ${default="2.0" smoothing_threshold_allele_fraction} \
-            --maximum-number-of-smoothing-iterations ${default=10 max_num_smoothing_iterations} \
-            --number-of-smoothing-iterations-per-fit ${default=0 num_smoothing_iterations_per_fit} \
+            --maximum-number-of-smoothing-iterations ${default="10" max_num_smoothing_iterations} \
+            --number-of-smoothing-iterations-per-fit ${default="0" num_smoothing_iterations_per_fit} \
             --output ${output_dir_} \
             --output-prefix ${entity_id}
 
