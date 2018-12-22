@@ -3,16 +3,19 @@ package org.broadinstitute.hellbender.utils.mcmc;
 
 import org.apache.commons.math3.distribution.ExponentialDistribution;
 import org.apache.commons.math3.random.RandomGenerator;
+import org.broadinstitute.hellbender.exceptions.GATKException;
 import org.broadinstitute.hellbender.utils.Utils;
 import org.broadinstitute.hellbender.utils.param.ParamUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.OptionalInt;
 import java.util.function.Function;
 
 /**
  * Implements slice sampling of a continuous, univariate, unnormalized probability density function,
  * which is assumed to be unimodal.  See Neal 2003 at https://projecteuclid.org/euclid.aos/1056562461 for details.
+ * Optional minibatching is implemented as in http://proceedings.mlr.press/v33/dubois14.pdf.
  *
  * @author Samuel Lee &lt;slee@broadinstitute.org&gt;
  */
@@ -26,7 +29,11 @@ public final class SliceSampler {
     private final double xMin;
     private final double xMax;
     private final double width;
+    private final Integer minibatchSize;
     private final ExponentialDistribution exponentialDistribution;
+
+    private Double xSampleCache = null;
+    private Double logPDFCache = null;
 
     /**
      * Creates a new sampler, given a random number generator, a continuous, univariate, unimodal, unnormalized
@@ -48,6 +55,7 @@ public final class SliceSampler {
         this.xMin = xMin;
         this.xMax = xMax;
         this.width = width;
+        this.minibatchSize = null;
         exponentialDistribution = new ExponentialDistribution(rng, 1.);
     }
 
@@ -63,6 +71,42 @@ public final class SliceSampler {
     }
 
     /**
+     * Creates a new sampler, given a random number generator, a continuous, univariate, unimodal, unnormalized
+     * log probability density function, hard limits on the random variable, a step width, and a minibatch size.
+     * @param rng      random number generator
+     * @param logPDF   continuous, univariate, unimodal log probability density function (up to additive constant)
+     * @param xMin     minimum allowed value of the random variable
+     * @param xMax     maximum allowed value of the random variable
+     * @param width    step width for slice expansion
+     */
+    public SliceSampler(final RandomGenerator rng, final Function<Double, Double> logPDF,
+                        final double xMin, final double xMax, final double width, final int minibatchSize) {
+        Utils.nonNull(rng);
+        Utils.nonNull(logPDF);
+        Utils.validateArg(xMin < xMax, "Maximum bound must be greater than minimum bound.");
+        ParamUtils.isPositive(width, "Slice-sampling width must be positive.");
+        ParamUtils.isPositive(minibatchSize, "Minibatch size must be positive.");
+        this.rng = rng;
+        this.logPDF = logPDF;
+        this.xMin = xMin;
+        this.xMax = xMax;
+        this.width = width;
+        this.minibatchSize = minibatchSize;
+        exponentialDistribution = new ExponentialDistribution(rng, 1.);
+    }
+
+    /**
+     * Creates a new sampler, given a random number generator, a continuous, univariate, unimodal, unnormalized
+     * log probability density function, a step width, and a minibatch size.
+     * @param rng      random number generator
+     * @param logPDF   continuous, univariate, unimodal log probability density function (up to additive constant)
+     * @param width    step width for slice expansion
+     */
+    public SliceSampler(final RandomGenerator rng, final Function<Double, Double> logPDF, final double width, final int minibatchSize) {
+        this(rng, logPDF, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, width, minibatchSize);
+    }
+
+    /**
      * Generate a single sample from the probability density function, given an initial value to use in slice construction.
      * @param xInitial      initial value to use in slice construction; must be in [xMin, xMax]
      * @return              sample drawn from the probability density function
@@ -75,37 +119,34 @@ public final class SliceSampler {
 
         //follow Neal 2003 procedure to slice sample with doubling of interval (assuming unimodal distribution)
 
-        //randomly pick height of slice from uniform distribution under PDF
-        //(equivalently, from exponential distribution under logPDF)
-        final double logSliceHeight = logPDF.apply(xSample) - exponentialDistribution.sample();
-
         //randomly position slice with given width so that it brackets xSample; position is uniformly distributed
         double xLeft = xSample - width * rng.nextDouble();
         double xRight = xLeft + width;
 
+        //sample the variable used to randomly pick height of slice from uniform distribution under PDF(xSample);
+        //slice height = u * PDF(xSample), where u ~ Uniform(0, 1)
+        //however, since we are working with logPDF, we instead sample z = -log u ~ Exponential(1)
+        final double z = exponentialDistribution.sample();
+
         int k = MAXIMUM_NUMBER_OF_DOUBLINGS;
-        //expand slice by doubling until it brackets logPDF
-        double logPDFLeft = xLeft > xMin ? logPDF.apply(xLeft) : Double.NEGATIVE_INFINITY;
-        double logPDFRight = xRight < xMax ? logPDF.apply(xRight) : Double.NEGATIVE_INFINITY;
-        while (k > 0 && ((logSliceHeight < logPDFLeft || logSliceHeight < logPDFRight))) {
+        //expand slice interval by doubling until it brackets PDF
+        //(i.e., PDF at both ends is less than the slice height)
+        while (k > 0 && (isOverSliceHeight(xLeft, xSample, z) || isOverSliceHeight(xRight, xSample, z))) {
             if (rng.nextBoolean()) {
                 xLeft = xLeft - (xRight - xLeft);
-                logPDFLeft = xLeft > xMin ? logPDF.apply(xLeft) : Double.NEGATIVE_INFINITY;
             } else {
                 xRight = xRight + (xRight - xLeft);
-                logPDFRight = xRight < xMax ? logPDF.apply(xRight) : Double.NEGATIVE_INFINITY;
             }
             k--;
         }
 
-        //sample uniformly from slice until sample under logPDF found, shrink slice on each iteration if not found
+        //sample uniformly from slice interval until sample over slice height found, shrink slice on each iteration if not found
         //limited to MAXIMUM_NUMBER_OF_SLICE_SAMPLINGS, after which last proposed sample is returned
         //(shouldn't happen if width is chosen appropriately)
         int numIterations = 1;
         double xProposed = rng.nextDouble() * (xRight - xLeft) + xLeft;
         while (numIterations <= MAXIMUM_NUMBER_OF_SLICE_SAMPLINGS) {
-            final double logPDFProposed = xMin < xProposed && xProposed < xMax ? logPDF.apply(xProposed) : Double.NEGATIVE_INFINITY;
-            if (logSliceHeight < logPDFProposed) {
+            if (isOverSliceHeight(xProposed, xSample, z)) {
                 break;
             }
             if (xProposed < xSample) {
@@ -134,5 +175,30 @@ public final class SliceSampler {
             samples.add(xSample);
         }
         return samples;
+    }
+
+    /**
+     * Returns true if PDF(xProposed) is over slice height = u * PDF(xSample), where u = exp(-z).
+     * See http://proceedings.mlr.press/v33/dubois14.pdf for details on implementation with minibatching.
+     */
+    private boolean isOverSliceHeight(final double xProposed,
+                                      final double xSample,
+                                      final double z) {
+        if (xProposed < xMin || xMax < xProposed) {
+            return false;
+        }
+        if (minibatchSize == null) {
+            if (xSampleCache == null || xSampleCache != xSample) {
+                //we cache logPDF(xSample) to avoid evaluating it multiple times
+                xSampleCache = xSample;
+                logPDFCache = logPDF.apply(xSample);
+            }
+            if ((xSampleCache == null && logPDFCache != null) || (xSampleCache != null && logPDFCache == null)) {
+                throw new GATKException.ShouldNeverReachHereException("Cache for logPDF(xSample) is invalid.");
+            }
+            return logPDF.apply(xProposed) > logPDFCache - z;
+        } else {
+            return true;
+        }
     }
 }
