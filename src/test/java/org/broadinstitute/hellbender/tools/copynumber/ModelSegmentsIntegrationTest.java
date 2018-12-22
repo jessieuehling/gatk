@@ -48,7 +48,7 @@ public final class ModelSegmentsIntegrationTest extends CommandLineProgramTest {
 //        final File outputDir = createTempDir("testDir");
 //        final String outputPrefix = "test";
         final File outputDir = new File("/home/slee/working/gatk/test_files/subsample");
-        final String outputPrefix = "matched-gtfix-subsampcrout";
+        final String outputPrefix = "matched-gtfix-burnin";
         final ArgumentsBuilder argsBuilder = new ArgumentsBuilder()
                 .addArgument(CopyNumberStandardArgument.DENOISED_COPY_RATIOS_FILE_LONG_NAME, TUMOR_DENOISED_COPY_RATIOS_FILE.getAbsolutePath())
                 .addArgument(CopyNumberStandardArgument.ALLELIC_COUNTS_FILE_LONG_NAME, TUMOR_ALLELIC_COUNTS_FILE.getAbsolutePath())

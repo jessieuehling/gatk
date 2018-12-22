@@ -542,6 +542,7 @@ task ModelSegments {
     File? normal_allelic_counts
     Int? max_num_segments_per_chromosome
     Int? min_total_allele_count
+    Int? min_total_allele_count_normal
     Float? genotyping_homozygous_log_ratio_threshold
     Float? genotyping_base_error_rate
     Float? kernel_variance_copy_ratio
@@ -577,6 +578,10 @@ task ModelSegments {
     # If optional output_dir not specified, use "out"
     String output_dir_ = select_first([output_dir, "out"])
 
+    # default values are min_total_allele_count_ = 0 in matched-normal mode
+    #                                            = 30 in case-only mode
+    String min_total_allele_count_ = if defined(min_total_allele_count) then min_total_allele_count else (if defined(normal_allelic_counts) then "0" else "30")
+
     command <<<
         set -e
         mkdir ${output_dir_}
@@ -586,7 +591,8 @@ task ModelSegments {
             --denoised-copy-ratios ${denoised_copy_ratios} \
             --allelic-counts ${allelic_counts} \
             ${"--normal-allelic-counts " + normal_allelic_counts} \
-            --minimum-total-allele-count ${default="30" min_total_allele_count} \
+            --minimum-total-allele-count ${min_total_allele_count_} \
+            --minimum-total-allele-count-normal ${default="30" min_total_allele_count_normal} \
             --genotyping-homozygous-log-ratio-threshold ${default="-10.0" genotyping_homozygous_log_ratio_threshold} \
             --genotyping-base-error-rate ${default="0.05" genotyping_base_error_rate} \
             --maximum-number-of-segments-per-chromosome ${default="1000" max_num_segments_per_chromosome} \
