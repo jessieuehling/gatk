@@ -249,8 +249,8 @@ public final class ModelSegments extends CommandLineProgram {
     public static final String MINOR_ALLELE_FRACTION_PRIOR_ALPHA_LONG_NAME = "minor-allele-fraction-prior-alpha";
     public static final String NUMBER_OF_SAMPLES_COPY_RATIO_LONG_NAME = "number-of-samples-copy-ratio";
     public static final String NUMBER_OF_BURN_IN_SAMPLES_COPY_RATIO_LONG_NAME = "number-of-burn-in-samples-copy-ratio";
-    public static final String NUM_SAMPLES_ALLELE_FRACTION_LONG_NAME = "number-of-samples-allele-fraction";
-    public static final String NUM_BURN_IN_ALLELE_FRACTION_LONG_NAME = "number-of-burn-in-samples-allele-fraction";
+    public static final String NUMBER_OF_SAMPLES_ALLELE_FRACTION_LONG_NAME = "number-of-samples-allele-fraction";
+    public static final String NUMBER_OF_BURN_IN_SAMPLES_ALLELE_FRACTION_LONG_NAME = "number-of-burn-in-samples-allele-fraction";
 
     //smoothing argument names
     public static final String SMOOTHING_CREDIBLE_INTERVAL_THRESHOLD_COPY_RATIO_LONG_NAME = "smoothing-credible-interval-threshold-copy-ratio";
@@ -425,7 +425,7 @@ public final class ModelSegments extends CommandLineProgram {
 
     @Argument(
             doc = "Total number of MCMC samples for allele-fraction model.",
-            fullName = NUM_SAMPLES_ALLELE_FRACTION_LONG_NAME,
+            fullName = NUMBER_OF_SAMPLES_ALLELE_FRACTION_LONG_NAME,
             optional = true,
             minValue = 1
     )
@@ -433,7 +433,7 @@ public final class ModelSegments extends CommandLineProgram {
 
     @Argument(
             doc = "Number of burn-in samples to discard for allele-fraction model.",
-            fullName = NUM_BURN_IN_ALLELE_FRACTION_LONG_NAME,
+            fullName = NUMBER_OF_BURN_IN_SAMPLES_ALLELE_FRACTION_LONG_NAME,
             optional = true,
             minValue = 0
     )
