@@ -9,62 +9,51 @@ import org.broadinstitute.hellbender.utils.param.ParamUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.OptionalInt;
 import java.util.function.Function;
 
 /**
  * Implements slice sampling of a continuous, univariate, unnormalized probability density function,
  * which is assumed to be unimodal.  See Neal 2003 at https://projecteuclid.org/euclid.aos/1056562461 for details.
+ * Optional minibatching is implemented as in http://proceedings.mlr.press/v33/dubois14.pdf.
  *
  * @author Samuel Lee &lt;slee@broadinstitute.org&gt;
  */
-public class SliceSampler {
-    private static final int MAXIMUM_NUMBER_OF_DOUBLINGS = 16;
-    private static final int MAXIMUM_NUMBER_OF_SLICE_SAMPLINGS = 100;
-    private static final double EPSILON = 1E-10;
-
-    private final RandomGenerator rng;
-    private final Function<Double, Double> logPDF;
-    private final double xMin;
-    private final double xMax;
-    private final double width;
-    private final ExponentialDistribution exponentialDistribution;
-
-    private Double xSampleCache = null;
-    private Double logPDFCache = null;
+public final class SliceSamplerMinibatch extends SliceSampler {
+    private final Integer minibatchSize;
+    private final Double minibatchApproxThreshold;
 
     /**
      * Creates a new sampler, given a random number generator, a continuous, univariate, unimodal, unnormalized
-     * log probability density function, hard limits on the random variable, and a step width.
-     * @param rng      random number generator
-     * @param logPDF   continuous, univariate, unimodal log probability density function (up to additive constant)
-     * @param xMin     minimum allowed value of the random variable
-     * @param xMax     maximum allowed value of the random variable
-     * @param width    step width for slice expansion
+     * log probability density function, hard limits on the random variable, a step width, a minibatch size,
+     * and a minibatch approximation threshold.
+     * @param rng                       random number generator
+     * @param logPDF                    continuous, univariate, unimodal log probability density function (up to additive constant)
+     * @param xMin                      minimum allowed value of the random variable
+     * @param xMax                      maximum allowed value of the random variable
+     * @param width                     step width for slice expansion
+     * @param minibatchSize             minibatch size
+     * @param minibatchApproxThreshold  minibatchApproxThreshold size
      */
-    public SliceSampler(final RandomGenerator rng, final Function<Double, Double> logPDF,
-                        final double xMin, final double xMax, final double width) {
-        Utils.nonNull(rng);
-        Utils.nonNull(logPDF);
-        Utils.validateArg(xMin < xMax, "Maximum bound must be greater than minimum bound.");
-        ParamUtils.isPositive(width, "Slice-sampling width must be positive.");
-        this.rng = rng;
-        this.logPDF = logPDF;
-        this.xMin = xMin;
-        this.xMax = xMax;
-        this.width = width;
-        exponentialDistribution = new ExponentialDistribution(rng, 1.);
+    public SliceSamplerMinibatch(final RandomGenerator rng, final Function<Double, Double> logPDF,
+                                 final double xMin, final double xMax, final double width, final int minibatchSize, final double minibatchApproxThreshold) {
+        super(rng, logPDF, xMin, xMax, width);
+        ParamUtils.isPositive(minibatchSize, "Minibatch size must be positive.");
+        ParamUtils.isPositive(minibatchApproxThreshold, "Minibatch approximation threshold must be positive.");
+        this.minibatchSize = minibatchSize;
+        this.minibatchApproxThreshold = minibatchApproxThreshold;
     }
 
     /**
      * Creates a new sampler, given a random number generator, a continuous, univariate, unimodal, unnormalized
-     * log probability density function, and a step width.
+     * log probability density function, a step width, a minibatch size, and a minibatch approximation threshold.
      * @param rng      random number generator
      * @param logPDF   continuous, univariate, unimodal log probability density function (up to additive constant)
      * @param width    step width for slice expansion
+     * @param minibatchSize             minibatch size
+     * @param minibatchApproxThreshold  minibatchApproxThreshold size
      */
-    public SliceSampler(final RandomGenerator rng, final Function<Double, Double> logPDF, final double width) {
-        this(rng, logPDF, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, width);
+    public SliceSamplerMinibatch(final RandomGenerator rng, final Function<Double, Double> logPDF, final double width, final int minibatchSize, final double minibatchApproxThreshold) {
+        this(rng, logPDF, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, width, minibatchSize, minibatchApproxThreshold);
     }
 
     /**
@@ -141,9 +130,9 @@ public class SliceSampler {
     /**
      * Returns true if PDF(xProposed) is over slice height = u * PDF(xSample), where u = exp(-z).
      */
-    protected boolean isOverSliceHeight(final double xProposed,
-                                        final double xSample,
-                                        final double z) {
+    private boolean isOverSliceHeight(final double xProposed,
+                                      final double xSample,
+                                      final double z) {
         if (xProposed < xMin || xMax < xProposed) {
             return false;
         }
