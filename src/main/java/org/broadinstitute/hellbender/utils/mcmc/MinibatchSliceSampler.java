@@ -128,8 +128,10 @@ public final class MinibatchSliceSampler<DATA> extends AbstractSliceSampler {
         double logLikelihoodDifferencesMean = 0.;
         double logLikelihoodDifferencesSquaredMean = 0.;
 
-        Collections.shuffle(permutedDataIndices, new Random(rng.nextInt()));
         final int numMinibatches = Math.max(numDataPoints / minibatchSize, 1);
+        if (numMinibatches > 1) {
+            Collections.shuffle(permutedDataIndices, new Random(rng.nextInt()));
+        }
         for (int minibatchIndex = 0; minibatchIndex < numMinibatches; minibatchIndex++) {
             final int dataIndexStart = minibatchIndex * minibatchSize;
             final int dataIndexEnd = Math.min((minibatchIndex + 1) * minibatchSize, numDataPoints);
