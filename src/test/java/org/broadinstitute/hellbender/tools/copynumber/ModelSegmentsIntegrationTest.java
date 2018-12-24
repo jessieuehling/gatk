@@ -33,7 +33,7 @@ public final class ModelSegmentsIntegrationTest extends CommandLineProgramTest {
 //            "model-segments-wes-tumor-allelic-counts-SM-74P4M-v1-chr20-downsampled.deduplicated.allelicCounts.tsv");
 //    private static final File NORMAL_ALLELIC_COUNTS_FILE = new File(TEST_SUB_DIR,
 //            "model-segments-wes-normal-allelic-counts-SM-74NEG-v1-chr20-downsampled.deduplicated.allelicCounts.tsv");
-    private static final File TUMOR_DENOISED_COPY_RATIOS_FILE = new File("/home/slee/working/gatk/test_files/tumor.denoisedCR.tsv");
+    private static final File TUMOR_DENOISED_COPY_RATIOS_FILE = new File("/home/slee/working/gatk/test_files/tumor-wgs.denoisedCR.tsv");
     private static final File TUMOR_ALLELIC_COUNTS_FILE = new File("/home/slee/working/gatk/test_files/tumor.allelicCounts.tsv");
     private static final File NORMAL_ALLELIC_COUNTS_FILE = new File("/home/slee/working/gatk/test_files/normal.allelicCounts.tsv");
     private static final File TUMOR_DENOISED_COPY_RATIOS_WITH_SAMPLE_NAME_MISMATCH_FILE = new File(TEST_SUB_DIR,
@@ -48,7 +48,7 @@ public final class ModelSegmentsIntegrationTest extends CommandLineProgramTest {
 //        final File outputDir = createTempDir("testDir");
 //        final String outputPrefix = "test";
         final File outputDir = new File("/home/slee/working/gatk/test_files/subsample");
-        final String outputPrefix = "matched-gtfix-cronly-mbcr";
+        final String outputPrefix = "wgs-matched-gtfix-cronly-mbcr-prof";
         final ArgumentsBuilder argsBuilder = new ArgumentsBuilder()
                 .addArgument(CopyNumberStandardArgument.DENOISED_COPY_RATIOS_FILE_LONG_NAME, TUMOR_DENOISED_COPY_RATIOS_FILE.getAbsolutePath())
 //                .addArgument(CopyNumberStandardArgument.ALLELIC_COUNTS_FILE_LONG_NAME, TUMOR_ALLELIC_COUNTS_FILE.getAbsolutePath())
