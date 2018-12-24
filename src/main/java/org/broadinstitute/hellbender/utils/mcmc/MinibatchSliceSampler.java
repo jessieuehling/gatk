@@ -29,6 +29,9 @@ public final class MinibatchSliceSampler<DATA> extends AbstractSliceSampler {
     private final Integer minibatchSize;
     private final Double approxThreshold;
 
+    private final int numDataPoints;
+    private final List<Integer> permutedDataIndices;;
+
     private Double xSampleCache = null;
     private Double logPriorCache = null;
     private Map<Integer, Double> logLikelihoodsCache = null;    //data index -> log likelihood
@@ -69,6 +72,8 @@ public final class MinibatchSliceSampler<DATA> extends AbstractSliceSampler {
         this.logLikelihood = logLikelihood;
         this.minibatchSize = minibatchSize;
         this.approxThreshold = approxThreshold;
+        this.numDataPoints = data.size();
+        this.permutedDataIndices = IntStream.range(0, numDataPoints).boxed().collect(Collectors.toList());
     }
 
     /**
@@ -106,8 +111,6 @@ public final class MinibatchSliceSampler<DATA> extends AbstractSliceSampler {
             return false;
         }
 
-        final int numDataPoints = data.size();
-
         //we cache values calculated from xSample, since this method is called multiple times for the same value of xSample
         //when expanding slice interval and proposing samples
         if (xSampleCache == null || xSampleCache != xSample) {
@@ -120,15 +123,13 @@ public final class MinibatchSliceSampler<DATA> extends AbstractSliceSampler {
             throw new GATKException.ShouldNeverReachHereException("Cache for xSample is in an invalid state.");
         }
 
-        final List<Integer> permutedDataIndices = IntStream.range(0, numDataPoints).boxed().collect(Collectors.toList());
-        Collections.shuffle(permutedDataIndices, new Random(rng.nextInt()));
-        final int numMinibatches = Math.max(numDataPoints / minibatchSize, 1);
-
         final double mu0 = (logPriorCache - logPrior.apply(xProposed) - z) / numDataPoints;
         int numDataIndicesSeen = 0;
         double logLikelihoodDifferencesMean = 0.;
         double logLikelihoodDifferencesSquaredMean = 0.;
 
+        Collections.shuffle(permutedDataIndices, new Random(rng.nextInt()));
+        final int numMinibatches = Math.max(numDataPoints / minibatchSize, 1);
         for (int minibatchIndex = 0; minibatchIndex < numMinibatches; minibatchIndex++) {
             final int dataIndexStart = minibatchIndex * minibatchSize;
             final int dataIndexEnd = Math.min((minibatchIndex + 1) * minibatchSize, numDataPoints);
