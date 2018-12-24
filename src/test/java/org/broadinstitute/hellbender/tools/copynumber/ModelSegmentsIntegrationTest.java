@@ -33,7 +33,7 @@ public final class ModelSegmentsIntegrationTest extends CommandLineProgramTest {
 //            "model-segments-wes-tumor-allelic-counts-SM-74P4M-v1-chr20-downsampled.deduplicated.allelicCounts.tsv");
 //    private static final File NORMAL_ALLELIC_COUNTS_FILE = new File(TEST_SUB_DIR,
 //            "model-segments-wes-normal-allelic-counts-SM-74NEG-v1-chr20-downsampled.deduplicated.allelicCounts.tsv");
-    private static final File TUMOR_DENOISED_COPY_RATIOS_FILE = new File("/home/slee/working/gatk/test_files/tumor-wgs.denoisedCR.tsv");
+    private static final File TUMOR_DENOISED_COPY_RATIOS_FILE = new File("/home/slee/working/gatk/test_files/tumor-wgs.1.denoisedCR.tsv");
     private static final File TUMOR_ALLELIC_COUNTS_FILE = new File("/home/slee/working/gatk/test_files/tumor.allelicCounts.tsv");
     private static final File NORMAL_ALLELIC_COUNTS_FILE = new File("/home/slee/working/gatk/test_files/normal.allelicCounts.tsv");
     private static final File TUMOR_DENOISED_COPY_RATIOS_WITH_SAMPLE_NAME_MISMATCH_FILE = new File(TEST_SUB_DIR,

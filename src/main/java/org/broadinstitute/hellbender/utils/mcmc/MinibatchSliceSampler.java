@@ -67,7 +67,7 @@ public final class MinibatchSliceSampler<DATA> extends AbstractSliceSampler {
         Utils.nonNull(logLikelihood);
         Utils.validateArg(minibatchSize > 1, "Minibatch size must be greater than 1.");
         ParamUtils.isPositiveOrZero(approxThreshold, "Minibatch approximation threshold must be non-negative.");
-        this.data = Collections.unmodifiableList(new ArrayList<>(Utils.nonNull(data)));
+        this.data = Collections.unmodifiableList(new ArrayList<>(data));
         this.logPrior = logPrior;
         this.logLikelihood = logLikelihood;
         this.minibatchSize = minibatchSize;
