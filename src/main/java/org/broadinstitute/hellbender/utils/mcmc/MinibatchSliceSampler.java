@@ -30,7 +30,7 @@ public final class MinibatchSliceSampler<DATA> extends AbstractSliceSampler {
     private final Double approxThreshold;
 
     private final int numDataPoints;
-    private final List<Integer> permutedDataIndices;;
+    private final List<Integer> permutedDataIndices;
 
     private Double xSampleCache = null;
     private Double logPriorCache = null;
