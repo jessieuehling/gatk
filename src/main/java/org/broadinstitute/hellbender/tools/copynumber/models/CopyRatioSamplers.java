@@ -8,13 +8,11 @@ import org.apache.logging.log4j.Logger;
 import org.broadinstitute.hellbender.utils.MathUtils;
 import org.broadinstitute.hellbender.utils.mcmc.MinibatchSliceSampler;
 import org.broadinstitute.hellbender.utils.mcmc.ParameterSampler;
-import org.broadinstitute.hellbender.utils.mcmc.SliceSampler;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -23,9 +21,11 @@ import java.util.stream.IntStream;
 final class CopyRatioSamplers {
     private static final Logger logger = LogManager.getLogger(CopyRatioSamplers.class);
 
+    private static final FunctionCache logCache = new FunctionCache(FastMath::log);
+
     private static final int GLOBAL_MINIBATCH_SIZE = 1000;
     private static final int SEGMENT_MINIBATCH_SIZE = 50;
-    private static final double APPROX_THRESHOLD = 1E-3;
+    private static final double APPROX_THRESHOLD = 1E-2;
     private static final Function<Double, Double> UNIFORM_LOG_PRIOR = x -> 0.;
 
     private CopyRatioSamplers() {}
@@ -62,7 +62,7 @@ final class CopyRatioSamplers {
             final BiFunction<CopyRatioSegmentedData.IndexedCopyRatio, Double, Double> logConditionalPDF = (icr, newVariance) ->
                     state.outlierIndicator(icr.getIndex())
                             ? 0.
-                            : -0.5 * FastMath.log(newVariance) - normalTerm(
+                            : -0.5 * logCache.computeIfAbsent(newVariance) - normalTerm(
                                     icr.getLog2CopyRatioValue(), state.segmentMean(icr.getSegmentIndex()), newVariance);
             return new MinibatchSliceSampler<>(
                     rng, data.getIndexedCopyRatios(), UNIFORM_LOG_PRIOR, logConditionalPDF,

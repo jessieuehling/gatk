@@ -5,10 +5,7 @@ import org.apache.commons.math3.util.FastMath;
 import org.broadinstitute.hellbender.tools.copynumber.formats.records.AllelicCount;
 import org.broadinstitute.hellbender.utils.MathUtils;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.IntStream;
 
 import static org.apache.commons.math3.util.FastMath.sqrt;
@@ -49,26 +46,6 @@ final class AlleleFractionLikelihoods {
 
     private static final FunctionCache logGammaCache = new FunctionCache(Gamma::logGamma);
     private static final FunctionCache logCache = new FunctionCache(FastMath::log);
-
-    private static final class FunctionCache extends LinkedHashMap<Double, Double> {
-        private static final long serialVersionUID = 19841647L;
-        private static final int MAX_SIZE = 100_000;
-
-        private final Function<Double, Double> mappingFunction;
-
-        FunctionCache(final Function<Double, Double> mappingFunction) {
-            this.mappingFunction = mappingFunction;
-        }
-
-        Double computeIfAbsent(final Double key) {
-            return super.computeIfAbsent(key, mappingFunction);
-        }
-
-        @Override
-        protected boolean removeEldestEntry(final Map.Entry<Double, Double> eldest) {
-            return size() >= MAX_SIZE;
-        }
-    }
 
     private AlleleFractionLikelihoods() {}
 
