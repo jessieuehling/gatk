@@ -7,10 +7,7 @@ import org.broadinstitute.hellbender.exceptions.GATKException;
 import org.broadinstitute.hellbender.utils.Utils;
 import org.broadinstitute.hellbender.utils.param.ParamUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -34,7 +31,7 @@ public final class MinibatchSliceSampler<DATA> extends AbstractSliceSampler {
 
     private Double xSampleCache = null;
     private Double logPriorCache = null;
-    private List<Double> logLikelihoodsCache = null;
+    private Map<Integer, Double> logLikelihoodsCache = null;    //data index -> log likelihood
 
     /**
      * Creates a new sampler for a bounded univariate random variable, given a random number generator, a list of data,
@@ -109,19 +106,20 @@ public final class MinibatchSliceSampler<DATA> extends AbstractSliceSampler {
             return false;
         }
 
+        final int numDataPoints = data.size();
+
         //we cache values calculated from xSample, since this method is called multiple times for the same value of xSample
         //when expanding slice interval and proposing samples
         if (xSampleCache == null || xSampleCache != xSample) {
             xSampleCache = xSample;
             logPriorCache = logPrior.apply(xSample);
-            logLikelihoodsCache = data.stream().map(d -> logLikelihood.apply(d, xSample)).collect(Collectors.toList());
+            logLikelihoodsCache = new HashMap<>(numDataPoints);
         }
         if (!((xSampleCache == null && logPriorCache == null && logLikelihoodsCache == null) ||
                 (xSampleCache != null && logPriorCache != null && logLikelihoodsCache != null))) {
             throw new GATKException.ShouldNeverReachHereException("Cache for xSample is in an invalid state.");
         }
 
-        final int numDataPoints = data.size();
         final List<Integer> permutedDataIndices = IntStream.range(0, numDataPoints).boxed().collect(Collectors.toList());
         Collections.shuffle(permutedDataIndices, new Random(rng.nextInt()));
         final int numMinibatches = Math.max(numDataPoints / minibatchSize, 1);
@@ -139,9 +137,11 @@ public final class MinibatchSliceSampler<DATA> extends AbstractSliceSampler {
             double logLikelihoodDifferencesMinibatchSum = 0.;
             double logLikelihoodDifferencesSquaredMinibatchSum = 0.;
             for (int i = 0; i < actualMinibatchSize; i++) {
-                final int permutedDataIndex = permutedDataIndices.get(dataIndexStart + i);
+                final int dataIndex = permutedDataIndices.get(dataIndexStart + i);
+                final double logLikelihoodxSample = logLikelihoodsCache.computeIfAbsent(
+                        dataIndex, j -> logLikelihood.apply(data.get(j), xSample));
                 final double logLikelihoodDifference =
-                        logLikelihood.apply(data.get(permutedDataIndex), xProposed) - logLikelihoodsCache.get(permutedDataIndex);
+                        logLikelihood.apply(data.get(dataIndex), xProposed) - logLikelihoodxSample;
                 logLikelihoodDifferencesMinibatchSum += logLikelihoodDifference;
                 logLikelihoodDifferencesSquaredMinibatchSum += logLikelihoodDifference * logLikelihoodDifference;
             }

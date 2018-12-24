@@ -44,8 +44,8 @@ import static org.broadinstitute.hellbender.utils.MathUtils.log10ToLog;
 final class AlleleFractionLikelihoods {
     private static final double EPSILON = 1E-10;
 
-    private static final FunctionCache logGammaCache = new FunctionCache(Gamma::logGamma);
-    private static final FunctionCache logCache = new FunctionCache(FastMath::log);
+    private static final FunctionCache<Double> logGammaCache = new FunctionCache<>(Gamma::logGamma);
+    private static final FunctionCache<Double> logCache = new FunctionCache<>(FastMath::log);
 
     private AlleleFractionLikelihoods() {}
 
