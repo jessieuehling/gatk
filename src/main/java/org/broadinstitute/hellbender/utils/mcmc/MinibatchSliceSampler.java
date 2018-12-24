@@ -164,7 +164,6 @@ public final class MinibatchSliceSampler<DATA> extends AbstractSliceSampler {
                     .cumulativeProbability(Math.abs((logLikelihoodDifferencesMean - mu0) / s));
 
             if (delta < approxThreshold) {
-                System.out.println(String.format("%d / %d minibatches used.", minibatchIndex + 1, numMinibatches));
                 break;
             }
         }
