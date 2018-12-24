@@ -136,16 +136,16 @@ public final class MinibatchSliceSampler<DATA> extends AbstractSliceSampler {
             final int dataIndexEnd = Math.min((minibatchIndex + 1) * minibatchSize, numDataPoints);
             final int actualMinibatchSize = dataIndexEnd - dataIndexStart;  //equals minibatchSize except perhaps for last minibatch
 
-            final List<Double> logLikelihoodDifferencesMinibatch = IntStream.range(dataIndexStart, dataIndexEnd).boxed()
-                    .map(permutedDataIndices::get)
-                    .map(i -> logLikelihood.apply(data.get(i), xProposed) - logLikelihoodsCache.get(i))
-                    .collect(Collectors.toList());
-            final List<Double> logLikelihoodDifferencesSquaredMinibatch = logLikelihoodDifferencesMinibatch.stream()
-                    .map(l -> Math.pow(l, 2))
-                    .collect(Collectors.toList());
+            double logLikelihoodDifferencesMinibatchSum = 0.;
+            double logLikelihoodDifferencesSquaredMinibatchSum = 0.;
+            for (int i = 0; i < actualMinibatchSize; i++) {
+                final int permutedDataIndex = permutedDataIndices.get(dataIndexStart + i);
+                final double logLikelihoodDifference =
+                        logLikelihood.apply(data.get(permutedDataIndex), xProposed) - logLikelihoodsCache.get(permutedDataIndex);
+                logLikelihoodDifferencesMinibatchSum += logLikelihoodDifference;
+                logLikelihoodDifferencesSquaredMinibatchSum += logLikelihoodDifference * logLikelihoodDifference;
+            }
 
-            final double logLikelihoodDifferencesMinibatchSum = logLikelihoodDifferencesMinibatch.stream().mapToDouble(x -> x).sum();
-            final double logLikelihoodDifferencesSquaredMinibatchSum = logLikelihoodDifferencesSquaredMinibatch.stream().mapToDouble(x -> x).sum();
             logLikelihoodDifferencesMean =
                     (numDataIndicesSeen * logLikelihoodDifferencesMean + logLikelihoodDifferencesMinibatchSum) /
                             (numDataIndicesSeen + actualMinibatchSize);

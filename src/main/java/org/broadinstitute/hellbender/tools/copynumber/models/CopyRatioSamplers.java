@@ -24,7 +24,7 @@ final class CopyRatioSamplers {
     private static final Logger logger = LogManager.getLogger(CopyRatioSamplers.class);
 
     private static final int GLOBAL_MINIBATCH_SIZE = 1000;
-    private static final int SEGMENT_MINIBATCH_SIZE = 100;
+    private static final int SEGMENT_MINIBATCH_SIZE = 50;
     private static final double APPROX_THRESHOLD = 1E-3;
     private static final Function<Double, Double> UNIFORM_LOG_PRIOR = x -> 0.;
 
