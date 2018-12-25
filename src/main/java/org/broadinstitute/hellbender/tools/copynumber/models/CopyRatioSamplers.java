@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -59,13 +60,15 @@ final class CopyRatioSamplers {
                              final CopyRatioState state, 
                              final CopyRatioSegmentedData data) {
             logger.debug("Sampling variance...");
+            final List<CopyRatioSegmentedData.IndexedCopyRatio> nonOutlierIndexedCopyRatios =
+                    data.getIndexedCopyRatios().stream()
+                            .filter(icr -> !state.outlierIndicator(icr.getIndex()))
+                            .collect(Collectors.toList());
             final BiFunction<CopyRatioSegmentedData.IndexedCopyRatio, Double, Double> logConditionalPDF = (icr, newVariance) ->
-                    state.outlierIndicator(icr.getIndex())
-                            ? 0.
-                            : -0.5 * logCache.computeIfAbsent(newVariance) - normalTerm(
-                                    icr.getLog2CopyRatioValue(), state.segmentMean(icr.getSegmentIndex()), newVariance);
+                    -0.5 * logCache.computeIfAbsent(newVariance)
+                            - normalTerm(icr.getLog2CopyRatioValue(), state.segmentMean(icr.getSegmentIndex()), newVariance);
             return new MinibatchSliceSampler<>(
-                    rng, data.getIndexedCopyRatios(), UNIFORM_LOG_PRIOR, logConditionalPDF,
+                    rng, nonOutlierIndexedCopyRatios, UNIFORM_LOG_PRIOR, logConditionalPDF,
                     varianceMin, varianceMax, varianceSliceSamplingWidth,
                     GLOBAL_MINIBATCH_SIZE, APPROX_THRESHOLD).sample(state.variance());
         }
