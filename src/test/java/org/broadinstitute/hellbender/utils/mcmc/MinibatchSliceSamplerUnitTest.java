@@ -39,7 +39,7 @@ public final class MinibatchSliceSamplerUnitTest {
     /**
      * Tests slice sampling of a normal posterior = uniform prior x normal likelihood from 1000 data points.
      * Checks that input mean and standard deviation are recovered from the posterior of the mean parameter
-     * by 500 burn-in samples + 1000 samples to a relative error of 1%.
+     * by 500 burn-in samples + 1000 samples to a relative error of 1% and 5%, respectively.
      */
     @Test
     public void testSliceSamplingOfNormalPosterior() {
@@ -66,13 +66,13 @@ public final class MinibatchSliceSamplerUnitTest {
         final double sampleMean = new Mean().evaluate(samples);
         final double sampleStandardDeviation = new StandardDeviation().evaluate(samples);
         Assert.assertEquals(relativeError(sampleMean, mean), 0., 0.01);
-        Assert.assertEquals(relativeError(sampleStandardDeviation, standardDeviation / Math.sqrt(NUM_DATA_POINTS)), 0., 0.01);
+        Assert.assertEquals(relativeError(sampleStandardDeviation, standardDeviation / Math.sqrt(NUM_DATA_POINTS)), 0., 0.05);
     }
 
     /**
      * Tests slice sampling of a beta posterior = uniform prior x binomial likelihood from 1000 data points.
      * Checks that input mean and standard deviation are recovered from the posterior of the mean parameter
-     * by 500 burn-in samples + 1000 samples to a relative error of 1%.
+     * by 500 burn-in samples + 1000 samples to a relative error of 1% and 5%, respectively.
      */
     @Test
     public void testSliceSamplingOfBetaPosterior() {
@@ -103,6 +103,6 @@ public final class MinibatchSliceSamplerUnitTest {
         final double sampleMean = new Mean().evaluate(samples);
         final double sampleStandardDeviation = new StandardDeviation().evaluate(samples);
         Assert.assertEquals(relativeError(sampleMean, p), 0., 0.01);
-        Assert.assertEquals(relativeError(sampleStandardDeviation, Math.sqrt(variance)), 0., 0.01);
+        Assert.assertEquals(relativeError(sampleStandardDeviation, Math.sqrt(variance)), 0., 0.05);
     }
 }

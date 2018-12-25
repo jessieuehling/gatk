@@ -162,9 +162,11 @@ final class CopyRatioSamplers {
                                                        final CopyRatioSegmentedData data) {
             logger.debug("Sampling outlier indicators...");
             final double outlierUnnormalizedLogProbability =
-                    Math.log(state.outlierProbability()) + outlierUniformLogLikelihood;
+                    FastMath.log(state.outlierProbability()) + outlierUniformLogLikelihood;
+//            final double notOutlierUnnormalizedLogProbabilityPrefactor =
+//                    FastMath.log(1. - state.outlierProbability()) - 0.5 * FastMath.log(2 * Math.PI * state.variance());
             final double notOutlierUnnormalizedLogProbabilityPrefactor =
-                    Math.log(1. - state.outlierProbability()) - 0.5 * Math.log(2 * Math.PI * state.variance());
+                    FastMath.log((1. - state.outlierProbability()) / FastMath.sqrt(2 * Math.PI * state.variance()));
             final List<Boolean> indicators = new ArrayList<>();
             for (int segment = 0; segment < data.getNumSegments(); segment++) {
                 final List<CopyRatioSegmentedData.IndexedCopyRatio> indexedCopyRatiosInSegment = data.getIndexedCopyRatiosInSegment(segment);

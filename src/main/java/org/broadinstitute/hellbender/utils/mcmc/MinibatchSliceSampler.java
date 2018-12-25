@@ -72,8 +72,8 @@ public final class MinibatchSliceSampler<DATA> extends AbstractSliceSampler {
         this.logLikelihood = logLikelihood;
         this.minibatchSize = minibatchSize;
         this.approxThreshold = approxThreshold;
-        this.numDataPoints = data.size();
-        this.permutedDataIndices = IntStream.range(0, numDataPoints).boxed().collect(Collectors.toList());
+        numDataPoints = data.size();
+        permutedDataIndices = IntStream.range(0, numDataPoints).boxed().collect(Collectors.toList());
     }
 
     /**
@@ -135,24 +135,23 @@ public final class MinibatchSliceSampler<DATA> extends AbstractSliceSampler {
             final int dataIndexEnd = Math.min((minibatchIndex + 1) * minibatchSize, numDataPoints);
             final int actualMinibatchSize = dataIndexEnd - dataIndexStart;  //equals minibatchSize except perhaps for last minibatch
 
-//            double logLikelihoodDifferencesMinibatchSum = 0.;
-//            double logLikelihoodDifferencesSquaredMinibatchSum = 0.;
-//            for (int i = 0; i < actualMinibatchSize; i++) {
-//                final int dataIndex = permutedDataIndices.get(dataIndexStart + i);
-//                final double logLikelihoodxSample = logLikelihoodsCache.computeIfAbsent(
-//                        dataIndex, j -> logLikelihood.apply(data.get(j), xSample));
-//                final double logLikelihoodDifference =
-//                        logLikelihood.apply(data.get(dataIndex), xProposed) - logLikelihoodxSample;
-//                logLikelihoodDifferencesMinibatchSum += logLikelihoodDifference;
-//                logLikelihoodDifferencesSquaredMinibatchSum += logLikelihoodDifference * logLikelihoodDifference;
-//            }
+            double logLikelihoodDifferencesMinibatchSum = 0.;
+            double logLikelihoodDifferencesSquaredMinibatchSum = 0.;
+            for (final int dataIndex : permutedDataIndices.subList(dataIndexStart, dataIndexEnd)) {
+                final double logLikelihoodxSample = logLikelihoodsCache.computeIfAbsent(
+                        dataIndex, i -> logLikelihood.apply(data.get(dataIndex), xSample));
+                final double logLikelihoodxProposed = logLikelihood.apply(data.get(dataIndex), xProposed);
+                final double logLikelihoodDifference = logLikelihoodxProposed - logLikelihoodxSample;
+                logLikelihoodDifferencesMinibatchSum += logLikelihoodDifference;
+                logLikelihoodDifferencesSquaredMinibatchSum += logLikelihoodDifference * logLikelihoodDifference;
+            }
 
-            final List<Double> logLikelihoodDifferencesMinibatch = permutedDataIndices.subList(dataIndexStart, dataIndexEnd).stream()
-                    .map(j -> logLikelihood.apply(data.get(j), xProposed)
-                            - logLikelihoodsCache.computeIfAbsent(j, k -> logLikelihood.apply(data.get(k), xSample)))
-                    .collect(Collectors.toList());
-            final double logLikelihoodDifferencesMinibatchSum = logLikelihoodDifferencesMinibatch.stream().mapToDouble(Double::doubleValue).sum();
-            final double logLikelihoodDifferencesSquaredMinibatchSum = logLikelihoodDifferencesMinibatch.stream().mapToDouble(x -> x * x).sum();
+//            final List<Double> logLikelihoodDifferencesMinibatch = permutedDataIndices.subList(dataIndexStart, dataIndexEnd).stream()
+//                    .map(j -> logLikelihood.apply(data.get(j), xProposed)
+//                            - logLikelihoodsCache.computeIfAbsent(j, k -> logLikelihood.apply(data.get(k), xSample)))
+//                    .collect(Collectors.toList());
+//            final double logLikelihoodDifferencesMinibatchSum = logLikelihoodDifferencesMinibatch.stream().mapToDouble(Double::doubleValue).sum();
+//            final double logLikelihoodDifferencesSquaredMinibatchSum = logLikelihoodDifferencesMinibatch.stream().mapToDouble(x -> x * x).sum();
 
             logLikelihoodDifferencesMean =
                     (numDataIndicesSeen * logLikelihoodDifferencesMean + logLikelihoodDifferencesMinibatchSum) /
