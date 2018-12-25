@@ -129,7 +129,9 @@ public final class MinibatchSliceSampler<DATA> extends AbstractSliceSampler {
         double logLikelihoodDifferencesSquaredMean = 0.;
 
         final int numMinibatches = Math.max(numDataPoints / minibatchSize, 1);
-        Collections.shuffle(permutedDataIndices, new Random(rng.nextInt()));
+        if (numMinibatches > 1) {
+            Collections.shuffle(permutedDataIndices, new Random(rng.nextInt()));
+        }
         for (int minibatchIndex = 0; minibatchIndex < numMinibatches; minibatchIndex++) {
             final int dataIndexStart = minibatchIndex * minibatchSize;
             final int dataIndexEnd = Math.min((minibatchIndex + 1) * minibatchSize, numDataPoints);
@@ -138,8 +140,9 @@ public final class MinibatchSliceSampler<DATA> extends AbstractSliceSampler {
             double logLikelihoodDifferencesMinibatchSum = 0.;
             double logLikelihoodDifferencesSquaredMinibatchSum = 0.;
             for (final int dataIndex : permutedDataIndices.subList(dataIndexStart, dataIndexEnd)) {
-                final double logLikelihoodxSample = logLikelihoodsCache.computeIfAbsent(
-                        dataIndex, i -> logLikelihood.apply(data.get(dataIndex), xSample));
+//                final double logLikelihoodxSample = logLikelihoodsCache.computeIfAbsent(
+//                        dataIndex, i -> logLikelihood.apply(data.get(dataIndex), xSample));
+                final double logLikelihoodxSample = logLikelihood.apply(data.get(dataIndex), xSample);
                 final double logLikelihoodxProposed = logLikelihood.apply(data.get(dataIndex), xProposed);
                 final double logLikelihoodDifference = logLikelihoodxProposed - logLikelihoodxSample;
                 logLikelihoodDifferencesMinibatchSum += logLikelihoodDifference;
@@ -161,7 +164,7 @@ public final class MinibatchSliceSampler<DATA> extends AbstractSliceSampler {
                             (numDataIndicesSeen + actualMinibatchSize);
             numDataIndicesSeen += actualMinibatchSize;
 
-            if (numDataIndicesSeen == 1) {
+            if (numDataIndicesSeen == 1 || numMinibatches == 1) {
                 break;
             }
 
@@ -171,6 +174,7 @@ public final class MinibatchSliceSampler<DATA> extends AbstractSliceSampler {
                     .cumulativeProbability(Math.abs((logLikelihoodDifferencesMean - mu0) / s));
 
             if (delta < approxThreshold) {
+//                System.out.println(String.format("%d / %d minibatches (%d / %d data points) used.", minibatchIndex + 1, numMinibatches, numDataIndicesSeen, numDataPoints));
                 break;
             }
         }

@@ -8,6 +8,7 @@ import org.broadinstitute.hellbender.utils.param.ParamUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * Abstract class for slice sampling of a continuous, univariate, unnormalized probability density function (PDF),
@@ -78,10 +79,13 @@ abstract class AbstractSliceSampler {
         //however, since we are working with logPDF, we instead sample z = -log u ~ Exponential(1)
         final double z = exponentialDistribution.sample();
 
+        final Function<Double, Boolean> isGreaterThanSliceHeight =
+                xProposed -> isGreaterThanSliceHeight(xProposed, xSample, z);
+
         int k = MAXIMUM_NUMBER_OF_DOUBLINGS;
         //expand slice interval by doubling until it brackets PDF
         //(i.e., PDF at both ends is less than the slice height)
-        while (k > 0 && (isGreaterThanSliceHeight(xLeft, xSample, z) || isGreaterThanSliceHeight(xRight, xSample, z))) {
+        while (k > 0 && (isGreaterThanSliceHeight.apply(xLeft) || isGreaterThanSliceHeight.apply(xRight))) {
             if (rng.nextBoolean()) {
                 xLeft = xLeft - (xRight - xLeft);
             } else {
@@ -96,7 +100,7 @@ abstract class AbstractSliceSampler {
         int numIterations = 1;
         double xProposed = rng.nextDouble() * (xRight - xLeft) + xLeft;
         while (numIterations <= MAXIMUM_NUMBER_OF_SLICE_SAMPLINGS) {
-            if (isGreaterThanSliceHeight(xProposed, xSample, z)) {
+            if (isGreaterThanSliceHeight.apply(xProposed)) {
                 break;
             }
             if (xProposed < xSample) {

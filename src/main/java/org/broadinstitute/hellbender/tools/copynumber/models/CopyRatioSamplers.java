@@ -26,7 +26,7 @@ final class CopyRatioSamplers {
 
     private static final int GLOBAL_MINIBATCH_SIZE = 100;
     private static final int SEGMENT_MINIBATCH_SIZE = 100;
-    private static final double APPROX_THRESHOLD = 5E-2;
+    private static final double APPROX_THRESHOLD = 1E-2;
     private static final Function<Double, Double> UNIFORM_LOG_PRIOR = x -> 0.;
 
     private CopyRatioSamplers() {}
@@ -143,7 +143,7 @@ final class CopyRatioSamplers {
 
     //samples log conditional posteriors for the outlier-indicator parameters; for each point t, this is given by:
     //          z_t * [log outlier_prob + outlierUniformLogLikelihood]
-    //  + (1 - z_t) * [log(1 - outlier_prob) - log(2 * pi * variance)/2 - (log2cr_t - mean_t)^2 / (2 * variance)]
+    //  + (1 - z_t) * [log((1 - outlier_prob) / (2 * pi * variance)^(1/2)) - (log2cr_t - mean_t)^2 / (2 * variance)]
     //  + const
     //where z_t is the indicator for point t, and outlier_prob is the outlier probability.
     //note that we compute the normalizing constant, so that we can sample a new indicator value by simply sampling
@@ -174,11 +174,9 @@ final class CopyRatioSamplers {
                     final double notOutlierUnnormalizedLogProbability =
                             notOutlierUnnormalizedLogProbabilityPrefactor
                                     - normalTerm(indexedCopyRatio.getLog2CopyRatioValue(), state.segmentMean(segment), state.variance());
-                    //note: we are working in natural log space, so we divide by ln(10) before using normalizeFromLog10
                     final double conditionalProbability =
-                            MathUtils.normalizeFromLog10ToLinearSpace(new double[]{
-                                    MathUtils.logToLog10(outlierUnnormalizedLogProbability),
-                                    MathUtils.logToLog10(notOutlierUnnormalizedLogProbability)})[0];
+                            FastMath.exp(outlierUnnormalizedLogProbability -
+                                    MathUtils.logSumLog(outlierUnnormalizedLogProbability, notOutlierUnnormalizedLogProbability));
                     indicators.add(rng.nextDouble() < conditionalProbability);
                 }
             }
