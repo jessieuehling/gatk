@@ -23,6 +23,9 @@ import java.util.stream.IntStream;
  * @author Samuel Lee &lt;slee@broadinstitute.org&gt;
  */
 public final class MinibatchSliceSampler<DATA> extends AbstractSliceSampler {
+    private static final int RANDOM_SEED = 42;
+    private static final Random rnd = new Random(RANDOM_SEED);
+
     private final List<DATA> data;
     private final Function<Double, Double> logPrior;
     private final BiFunction<DATA, Double, Double> logLikelihood;
@@ -130,7 +133,7 @@ public final class MinibatchSliceSampler<DATA> extends AbstractSliceSampler {
 
         final int numMinibatches = Math.max(numDataPoints / minibatchSize, 1);
         if (numMinibatches > 1) {
-            Collections.shuffle(permutedDataIndices, new Random(rng.nextInt()));
+            Collections.shuffle(permutedDataIndices, rnd);
         }
         for (int minibatchIndex = 0; minibatchIndex < numMinibatches; minibatchIndex++) {
             final int dataIndexStart = minibatchIndex * minibatchSize;
