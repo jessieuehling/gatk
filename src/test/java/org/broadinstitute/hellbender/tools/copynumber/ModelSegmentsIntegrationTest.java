@@ -53,8 +53,8 @@ public final class ModelSegmentsIntegrationTest extends CommandLineProgramTest {
                 .addArgument(CopyNumberStandardArgument.DENOISED_COPY_RATIOS_FILE_LONG_NAME, TUMOR_DENOISED_COPY_RATIOS_FILE.getAbsolutePath())
 //                .addArgument(CopyNumberStandardArgument.ALLELIC_COUNTS_FILE_LONG_NAME, TUMOR_ALLELIC_COUNTS_FILE.getAbsolutePath())
 //                .addArgument(CopyNumberStandardArgument.NORMAL_ALLELIC_COUNTS_FILE_LONG_NAME, NORMAL_ALLELIC_COUNTS_FILE.getAbsolutePath())
-//                .addArgument(ModelSegments.NUMBER_OF_BURN_IN_SAMPLES_COPY_RATIO_LONG_NAME, "100")
-//                .addArgument(ModelSegments.NUMBER_OF_SAMPLES_COPY_RATIO_LONG_NAME, "200")
+//                .addArgument(ModelSegments.NUMBER_OF_BURN_IN_SAMPLES_COPY_RATIO_LONG_NAME, "250")
+//                .addArgument(ModelSegments.NUMBER_OF_SAMPLES_COPY_RATIO_LONG_NAME, "500")
                 .addOutput(outputDir)
                 .addArgument(StandardArgumentDefinitions.VERBOSITY_NAME, "INFO")
                 .addArgument(CopyNumberStandardArgument.OUTPUT_PREFIX_LONG_NAME, outputPrefix);

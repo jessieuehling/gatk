@@ -33,7 +33,6 @@ public final class MinibatchSliceSampler<DATA> extends AbstractSliceSampler {
     private final Double approxThreshold;
 
     private final int numDataPoints;
-    private final List<Integer> permutedDataIndices;
 
     private Double xSampleCache = null;
     private Double logPriorCache = null;
@@ -76,7 +75,6 @@ public final class MinibatchSliceSampler<DATA> extends AbstractSliceSampler {
         this.minibatchSize = minibatchSize;
         this.approxThreshold = approxThreshold;
         numDataPoints = data.size();
-        permutedDataIndices = IntStream.range(0, numDataPoints).boxed().collect(Collectors.toList());
     }
 
     /**
@@ -132,21 +130,20 @@ public final class MinibatchSliceSampler<DATA> extends AbstractSliceSampler {
         double logLikelihoodDifferencesSquaredMean = 0.;
 
         final int numMinibatches = Math.max(numDataPoints / minibatchSize, 1);
-        if (numMinibatches > 1) {
-            Collections.shuffle(permutedDataIndices, rnd);
-        }
+        final Iterator<DATA> dataIterator = numMinibatches > 1 ? lazyShuffleIterator(data) : data.iterator();
         for (int minibatchIndex = 0; minibatchIndex < numMinibatches; minibatchIndex++) {
             final int dataIndexStart = minibatchIndex * minibatchSize;
             final int dataIndexEnd = Math.min((minibatchIndex + 1) * minibatchSize, numDataPoints);
             final int actualMinibatchSize = dataIndexEnd - dataIndexStart;  //equals minibatchSize except perhaps for last minibatch
+            final List<DATA> dataMinibatch = IntStream.range(0, actualMinibatchSize).boxed().map(i -> dataIterator.next()).collect(Collectors.toList());
 
             double logLikelihoodDifferencesMinibatchSum = 0.;
             double logLikelihoodDifferencesSquaredMinibatchSum = 0.;
-            for (final int dataIndex : permutedDataIndices.subList(dataIndexStart, dataIndexEnd)) {
+            for (final DATA dataPoint : dataMinibatch) {
 //                final double logLikelihoodxSample = logLikelihoodsCache.computeIfAbsent(
 //                        dataIndex, i -> logLikelihood.apply(data.get(dataIndex), xSample));
-                final double logLikelihoodxSample = logLikelihood.apply(data.get(dataIndex), xSample);
-                final double logLikelihoodxProposed = logLikelihood.apply(data.get(dataIndex), xProposed);
+                final double logLikelihoodxSample = logLikelihood.apply(dataPoint, xSample);
+                final double logLikelihoodxProposed = logLikelihood.apply(dataPoint, xProposed);
                 final double logLikelihoodDifference = logLikelihoodxProposed - logLikelihoodxSample;
                 logLikelihoodDifferencesMinibatchSum += logLikelihoodDifference;
                 logLikelihoodDifferencesSquaredMinibatchSum += logLikelihoodDifference * logLikelihoodDifference;
@@ -182,5 +179,48 @@ public final class MinibatchSliceSampler<DATA> extends AbstractSliceSampler {
             }
         }
         return logLikelihoodDifferencesMean > mu0;
+    }
+
+    private static <T> Iterator<T> lazyShuffleIterator(final List<T> data) {
+        final int len = data.size();
+        // get first prime >= len
+        int newLen1 = len - 1;
+        boolean prime;
+        do
+        {
+            newLen1++;
+            // prime check
+            prime = true;
+            for (int i = 2; prime && i < len; i++) {
+                prime = (newLen1 % i != 0);
+            }
+        }
+        while (!prime);
+        final int newLen = newLen1;
+
+        return new Iterator<T>() {
+            int i = 0;
+            int val = rnd.nextInt(len - 3) + 2;
+            int oldVal = val;
+
+            public boolean hasNext() { return i < data.size(); }
+
+            @Override
+            public T next() {
+                T d = null;
+                do
+                {
+                    if (val < len) {
+                        d = data.get(val);
+                        break;
+                    }
+                    val = (val + oldVal) % newLen;
+                }
+                while (true);
+                i++;
+                val = (val + oldVal) % newLen;
+                return d;
+            }
+        };
     }
 }
