@@ -24,9 +24,9 @@ final class CopyRatioSamplers {
 
     private static final FunctionCache<Double> logCache = new FunctionCache<>(FastMath::log);
 
-    private static final int GLOBAL_MINIBATCH_SIZE = 100;
-    private static final int SEGMENT_MINIBATCH_SIZE = 100;
-    private static final double APPROX_THRESHOLD = 1E-2;
+    private static final int GLOBAL_MINIBATCH_SIZE = 1000;
+    private static final int SEGMENT_MINIBATCH_SIZE = 1000;
+    private static final double APPROX_THRESHOLD = 0.1;
     private static final Function<Double, Double> UNIFORM_LOG_PRIOR = x -> 0.;
 
     private CopyRatioSamplers() {}
