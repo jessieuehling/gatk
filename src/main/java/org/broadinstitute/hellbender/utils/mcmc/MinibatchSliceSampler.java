@@ -2,6 +2,7 @@ package org.broadinstitute.hellbender.utils.mcmc;
 
 
 import org.apache.commons.math3.distribution.TDistribution;
+import org.apache.commons.math3.primes.Primes;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.broadinstitute.hellbender.exceptions.GATKException;
 import org.broadinstitute.hellbender.utils.Utils;
@@ -23,9 +24,6 @@ import java.util.stream.IntStream;
  * @author Samuel Lee &lt;slee@broadinstitute.org&gt;
  */
 public final class MinibatchSliceSampler<DATA> extends AbstractSliceSampler {
-    private static final int RANDOM_SEED = 42;
-    private static final Random rnd = new Random(RANDOM_SEED);
-
     private final List<DATA> data;
     private final Function<Double, Double> logPrior;
     private final BiFunction<DATA, Double, Double> logLikelihood;
@@ -130,12 +128,16 @@ public final class MinibatchSliceSampler<DATA> extends AbstractSliceSampler {
         double logLikelihoodDifferencesSquaredMean = 0.;
 
         final int numMinibatches = Math.max(numDataPoints / minibatchSize, 1);
-        final Iterator<DATA> dataIterator = numMinibatches > 1 ? lazyShuffleIterator(data) : data.iterator();
+        final Iterator<DATA> shuffledDataIterator = numMinibatches > 1
+                ? lazyShuffleIterator(rng, data)
+                : data.iterator();
         for (int minibatchIndex = 0; minibatchIndex < numMinibatches; minibatchIndex++) {
             final int dataIndexStart = minibatchIndex * minibatchSize;
             final int dataIndexEnd = Math.min((minibatchIndex + 1) * minibatchSize, numDataPoints);
             final int actualMinibatchSize = dataIndexEnd - dataIndexStart;  //equals minibatchSize except perhaps for last minibatch
-            final List<DATA> dataMinibatch = IntStream.range(0, actualMinibatchSize).boxed().map(i -> dataIterator.next()).collect(Collectors.toList());
+            final List<DATA> dataMinibatch = IntStream.range(0, actualMinibatchSize).boxed()
+                    .map(i -> shuffledDataIterator.next())
+                    .collect(Collectors.toList());
 
             double logLikelihoodDifferencesMinibatchSum = 0.;
             double logLikelihoodDifferencesSquaredMinibatchSum = 0.;
@@ -149,7 +151,7 @@ public final class MinibatchSliceSampler<DATA> extends AbstractSliceSampler {
                 logLikelihoodDifferencesSquaredMinibatchSum += logLikelihoodDifference * logLikelihoodDifference;
             }
 
-//            final List<Double> logLikelihoodDifferencesMinibatch = permutedDataIndices.subList(dataIndexStart, dataIndexEnd).stream()
+//            final List<Double> logLikelihoodDifferencesMinibatch = dataIndicesMinibatch.stream()
 //                    .map(j -> logLikelihood.apply(data.get(j), xProposed)
 //                            - logLikelihoodsCache.computeIfAbsent(j, k -> logLikelihood.apply(data.get(k), xSample)))
 //                    .collect(Collectors.toList());
@@ -181,45 +183,35 @@ public final class MinibatchSliceSampler<DATA> extends AbstractSliceSampler {
         return logLikelihoodDifferencesMean > mu0;
     }
 
-    private static <T> Iterator<T> lazyShuffleIterator(final List<T> data) {
-        final int len = data.size();
-        // get first prime >= len
-        int newLen1 = len - 1;
-        boolean prime;
-        do
-        {
-            newLen1++;
-            // prime check
-            prime = true;
-            for (int i = 2; prime && i < len; i++) {
-                prime = (newLen1 % i != 0);
-            }
-        }
-        while (!prime);
-        final int newLen = newLen1;
+    /**
+     * To efficiently sample without replacement with the possibility of early stopping when creating minibatches,
+     * we lazily shuffle to avoid unnecessarily shuffling all data.
+     */
+    private static <T> Iterator<T> lazyShuffleIterator(final RandomGenerator rng,
+                                                       final List<T> data) {
+        final int numDataPoints = data.size();
+
+        //find first prime greater than or equal to numDataPoints
+        final int nextPrime = Primes.nextPrime(numDataPoints);
 
         return new Iterator<T>() {
-            int i = 0;
-            int val = rnd.nextInt(len - 3) + 2;
-            int oldVal = val;
+            int numSeen = 0;
+            int index = rng.nextInt(numDataPoints) + 1;
+            final int increment = index;
 
-            public boolean hasNext() { return i < data.size(); }
+            public boolean hasNext() {
+                return numSeen < data.size();
+            }
 
             @Override
             public T next() {
-                T d = null;
-                do
-                {
-                    if (val < len) {
-                        d = data.get(val);
-                        break;
+                while (true) {
+                    index = (index + increment) % nextPrime;
+                    if (index < numDataPoints) {
+                        numSeen++;
+                        return data.get(index);
                     }
-                    val = (val + oldVal) % newLen;
                 }
-                while (true);
-                i++;
-                val = (val + oldVal) % newLen;
-                return d;
             }
         };
     }

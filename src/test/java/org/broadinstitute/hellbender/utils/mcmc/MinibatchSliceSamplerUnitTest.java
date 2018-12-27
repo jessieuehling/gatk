@@ -23,7 +23,7 @@ import java.util.function.Function;
  * @author Samuel Lee &lt;slee@broadinstitute.org&gt;
  */
 public final class MinibatchSliceSamplerUnitTest {
-    private static final int RANDOM_SEED = 42;
+    private static final int RANDOM_SEED = 1;
     private static final RandomGenerator rng =
             RandomGeneratorFactory.createRandomGenerator(new Random(RANDOM_SEED));
 
